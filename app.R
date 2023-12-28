@@ -258,6 +258,13 @@ ui <- shiny::fluidPage(
           shiny::br(),
           shiny::HTML("<b>Cite as</b>"),
           shiny::br(),
+          shiny::HTML(
+            "Arthur, F. (2023). UsIA | Ultrasound Image Analysis (1.0.0). Zenodo. https://doi.org/10.5281/zenodo.10439719"
+          ),
+          shiny::br(),
+          shiny::br(),
+          shiny::HTML("<a href=\"https://doi.org/10.5281/zenodo.10439719\" style=\"vertical-align:middle;\"><img src=\"https://zenodo.org/badge/DOI/10.5281/zenodo.10439719.svg\" alt=\"DOI\"  style=\"vertical-align:top;\"></a>"),
+          shiny::br(),
         ),
       ),
     ),
