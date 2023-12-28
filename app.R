@@ -259,7 +259,7 @@ ui <- shiny::fluidPage(
           shiny::HTML("<b>Cite as</b>"),
           shiny::br(),
           shiny::HTML(
-            "Arthur, F. (2023). UsIA | Ultrasound Image Analysis (1.0.0). Zenodo. https://doi.org/10.5281/zenodo.10439719"
+            "Ferreira, A.S. (2023). UsIA | Ultrasound Image Analysis (1.0.0). Zenodo. https://doi.org/10.5281/zenodo.10439719"
           ),
           shiny::br(),
           shiny::br(),
