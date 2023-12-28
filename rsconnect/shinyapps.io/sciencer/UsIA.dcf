@@ -1,0 +1,12 @@
+name: UsIA
+title: UsIA
+username: sciencer
+account: sciencer
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 10849531
+bundleId: 8090582
+url: https://sciencer.shinyapps.io/UsIA/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
