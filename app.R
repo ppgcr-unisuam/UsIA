@@ -100,6 +100,15 @@ ui <- shiny::fluidPage(
             accept = c(".mp4")
           ),
           shiny::actionButton(
+            inputId = "buttEdit",
+            label = "Edit video",
+            class = "btn-primary",
+            style = "width:100%; border-color:white; border-radius: 10px;",
+            shiny::icon("edit")
+          ),
+          shiny::br(),
+          shiny::br(),
+          shiny::actionButton(
             inputId = "buttROI",
             label = "Select ROI",
             class = "btn-primary",
@@ -207,22 +216,23 @@ ui <- shiny::fluidPage(
           shiny::br(),
           shiny::HTML(
             "<p>1. Upload a video file (.mp4) with the <b>Upload video</b>.</p>
-            <p>2. Select the region of interest (ROI) with the <b>Select ROI</b>.</p>
-            <p>3. Adjust the parameters for analysis:</p>
+            <p>2. If necessary, edit the video by subsetting the uploaded video using <b>Edit</b>.</p>
+            <p>3. Select the region of interest (ROI) with the <b>Select ROI</b>.</p>
+            <p>4. Adjust the parameters for analysis:</p>
             <p>   - <i>Object size</i>: '1' to '201' (odd numbers only).</p>
             <p>   - <i>Overlap</i>: '0' to '100%'.</p>
             <p>   - <i>Filter type</i>: 'none', 'gaussian', 'median'.</p>
             <p>   - <i>Filter size</i>: '1' to '11' (odd numbers only).</p>
             <p>   - <i>Jump</i>: '1' to '5' frames.</p>
-            <p>4. Click <b>Analyze</b>. Wait until the red progress bar on the top stops blinking.</p>
-            <p>5. Check <b>Output</b> tab to visualize the processed video.</p>
-            <p>6. Check <b>Plots</b> and <b>Table</b> tabs for the results.</p>
-            <p>7. Click on <b>Downloads</b> to download time series for:</p>
+            <p>5. Click <b>Analyze</b>. Wait until the red progress bar on the top stops blinking.</p>
+            <p>6. Check <b>Output</b> tab to visualize the processed video.</p>
+            <p>7. Check <b>Plots</b> and <b>Table</b> tabs for the results.</p>
+            <p>8. Click on <b>Downloads</b> to download time series for:</p>
             <p>   - <i>Output video</i> (.mp4)
             <p>   - <i>Object trajectory</i> (.csv)
             <p>   - <i>Object displacement</i> (.csv)
             <p>   - </i>Maximum cross-correlation</i> (.csv)
-            <p>8. Click <b>Reset</b> icon for running new analisys.",
+            <p>9. Click <b>Reset</b> icon for running new analisys.",
           ),
         ),
         shiny::tabPanel(
@@ -263,7 +273,9 @@ ui <- shiny::fluidPage(
           ),
           shiny::br(),
           shiny::br(),
-          shiny::HTML("<a href=\"https://doi.org/10.5281/zenodo.10439719\" style=\"vertical-align:middle;\"><img src=\"https://zenodo.org/badge/DOI/10.5281/zenodo.10439719.svg\" alt=\"DOI\"  style=\"vertical-align:top;\"></a>"),
+          shiny::HTML(
+            "<a href=\"https://doi.org/10.5281/zenodo.10439719\" style=\"vertical-align:middle;\"><img src=\"https://zenodo.org/badge/DOI/10.5281/zenodo.10439719.svg\" alt=\"DOI\"  style=\"vertical-align:top;\"></a>"
+          ),
           shiny::br(),
         ),
       ),
@@ -276,13 +288,31 @@ ui <- shiny::fluidPage(
         type = "tabs",
         shiny::tabPanel(
           title = "Input",
-          br(),
+          shiny::br(),
           shiny::uiOutput(outputId = "videoraw"),
           align = "center"
         ),
         shiny::tabPanel(
+          title = "Edit",
+          shiny::br(),
+          shiny::uiOutput(outputId = "videoedit"),
+          shiny::br(),
+          shiny::sliderInput(
+            inputId = "framesEdit",
+            label = "Frames",
+            min = 1,
+            max = 100,
+            value = c(1, 100),
+            step = 1,
+            ticks = FALSE,
+            animate = TRUE,
+            width = "100%"
+          ),
+          align = "center"
+        ),
+        shiny::tabPanel(
           title = "ROI",
-          br(),
+          shiny::br(),
           shiny::plotOutput(
             outputId = "plotROI",
             width = "auto",
@@ -292,19 +322,19 @@ ui <- shiny::fluidPage(
         ),
         shiny::tabPanel(
           title = "Output",
-          br(),
+          shiny::br(),
           shiny::uiOutput(outputId = "videooutput"),
           align = "center"
         ),
         shiny::tabPanel(
           title = "Plots",
-          br(),
+          shiny::br(),
           shiny::plotOutput("plotResults",  width = "100%"),
           align = "center"
         ),
         shiny::tabPanel(
           title = "Table",
-          br(),
+          shiny::br(),
           DT::dataTableOutput("tableResults", width = "100%"),
           align = "center"
         ),
@@ -360,6 +390,12 @@ server <- function(input, output, session) {
     source_coords$xy[2,] <- c(input$plot_click$x, input$plot_click$y)
   })
   
+  # change to tab Edit under event ---------------------------------------------------------
+  shiny::observeEvent(input[["buttEdit"]], {
+    shiny::updateTabsetPanel(inputId = "tabResults",
+                             selected = "Edit")
+  })
+  
   # change to tab ROI under event ---------------------------------------------------------
   shiny::observeEvent(input[["InputFile"]], {
     shiny::updateTabsetPanel(inputId = "tabResults",
@@ -412,42 +448,103 @@ server <- function(input, output, session) {
   # play uploaded video ---------------------------------------------------------
   output[["videoraw"]] <- shiny::renderUI({
     shiny::req(Video())
+    # Get video info such as width, height, format, duration and framerate
+    info <- av::av_media_info(Video())
+    
     # copy and rename file
     file.copy(from = Video(),
-              to = file.path(dir.name, "uploadedvideo.mp4"))
+              to = file.path(dir.name, "rawvideo.mp4"))
     # Splits a video file in a set of image files. Use format = "png" for losless images
     av::av_video_images(
-      video = file.path(dir.name, "uploadedvideo.mp4"),
-      destdir = file.path(dir.name, "1 raw"),
+      video = file.path(dir.name, "rawvideo.mp4"),
+      destdir = file.path(dir.name, "0 raw"),
       format = "png",
       fps = NULL
     )
+    
+    # copy and rename file
+    file.copy(from = Video(),
+              to = file.path(dir.name, "editedvideo.mp4"))
+    
     # update max value of slider under event
     shiny::updateSliderInput(
-      inputId = "frames",
+      inputId = "framesEdit",
       min = 1,
-      value = 1,
+      value = c(1, length(
+        list.files(file.path(dir.name, "0 raw"), pattern = ".png")
+      )),
       max = length(list.files(
-        file.path(dir.name, "1 raw"), pattern = ".png"
+        file.path(dir.name, "0 raw"), pattern = ".png"
       ))
     )
+    
+    # show input video
+    tags$video(
+      width = "90%",
+      height = "90%",
+      controls = "",
+      tags$source(src = "rawvideo.mp4", type = "video/mp4")
+    )
+  })
+  
+  # edit mp4 video using the sliderEdit input ---------------------------------------------------------
+  output[["videoedit"]] <- shiny::renderUI({
+    shiny::req(Video())
+    # Get video info such as width, height, format, duration and framerate
+    info <- av::av_media_info(Video())
+    
+    # generate mp4 video using the sliderEdit input
+    av::av_encode_video(
+      input = list.files(
+        file.path(dir.name, "0 raw"),
+        pattern = ".png",
+        full.names = TRUE
+      )[input$framesEdit[1]:input$framesEdit[2]],
+      output = file.path(dir.name, "editedvideo.mp4"),
+      framerate = info$video$framerate
+    )
+    
+    # delete previous edit files
+    unlink(
+      list.files(
+        path = file.path(dir.name, "1 edit"),
+        recursive = TRUE,
+        include.dirs = TRUE,
+        full.names = TRUE,
+        pattern = "png"
+      )
+    )
+    
+    # Splits a video file in a set of image files. Use format = "png" for losless images
+    av::av_video_images(
+      video = file.path(dir.name, "editedvideo.mp4"),
+      destdir = file.path(dir.name, "1 edit"),
+      format = "png",
+      fps = NULL
+    )
+    
     # show video
     tags$video(
       width = "90%",
       height = "90%",
       controls = "",
-      tags$source(src = "uploadedvideo.mp4", type = "video/mp4")
+      tags$source(src = "editedvideo.mp4", type = "video/mp4")
     )
   })
   
   # show PNG file of 1st frame ---------------------------------------------------------
   output[["plotROI"]] <- shiny::renderPlot({
-    shiny::req(Video())
+    shiny::req(Video(), input$framesEdit)
     # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
+    
     # show 1st frame
     img <-
-      magick::image_read(file.path(dir.name, "1 raw", "image_000001.png"))
+      magick::image_read(list.files(
+        file.path(dir.name, "1 edit"),
+        full.names = TRUE,
+        pattern = "png"
+      ))[1]
     # color palette (grayscale)
     pal <- grDevices::gray(seq(
       from = 0,
@@ -512,6 +609,9 @@ server <- function(input, output, session) {
   # process and play video ---------------------------------------------------------
   shiny::observeEvent(input[["buttAnalyze"]], {
     shiny::req(Video())
+    # Get video info such as width, height, format, duration and framerate
+    info <- av::av_media_info(Video())
+    
     # source all scripts
     source("f_process_color.R", local = TRUE)
     source("f_process_detrend.R", local = TRUE)
@@ -524,17 +624,11 @@ server <- function(input, output, session) {
     source("f_track_first.R", local = TRUE)
     source("us_track.R", local = TRUE)
     
-    # copy and rename file
-    file.copy(
-      from = file.path(dir.name, "uploadedvideo.mp4"),
-      to = file.path(dir.name, "inputvideo.mp4")
-    )
-    
     # Capture the result of us_track function call
     us_track(
       center.ini <-
         list(x = source_coords$xy[2, 1], y = source_coords$xy[2, 2]),
-      inputfile = file.path(dir.name, "inputvideo.mp4"),
+      inputfile = file.path(dir.name, "editedvideo.mp4"),
       filtertype = input$FilterType,
       filtersize = input$FilterSize,
       overlap = input$Overlap,
@@ -543,7 +637,6 @@ server <- function(input, output, session) {
     )
     
     # draw trajectory on images
-    info <- av::av_media_info(Video())
     path <-
       read.csv(file.path(dir.name, "CSV", "trajectory_measured.csv"))
     for (i in 1:length(list.files(file.path(dir.name, "8 output")))) {
@@ -572,7 +665,9 @@ server <- function(input, output, session) {
   # show MP4 video of output file
   output[["videooutput"]] <- shiny::renderUI({
     shiny::req(Video())
+    # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
+    
     # build mp4 video using av video packafe from out.dir files
     av::av_encode_video(
       input = list.files(
@@ -600,7 +695,8 @@ server <- function(input, output, session) {
       info <- av::av_media_info(Video())
       data.frame(
         "File name" = videoname()[1],
-        "Frames" = info$video$frames,
+        "Frames (n)" = info$video$frames,
+        "Start - End (frames)" = paste0(input$framesEdit[1], " - ", input$framesEdit[2]),
         "Video size (px)" = paste0(info$video$width, " x ", info$video$height),
         "X0 (px)" = round(source_coords$xy[2, 1], 0),
         "Y0 (px)" = round(source_coords$xy[2, 2], 0),
@@ -639,7 +735,8 @@ server <- function(input, output, session) {
       info <- av::av_media_info(Video())
       data.frame(
         "File name" = videoname()[1],
-        "Frames" = info$video$frames,
+        "Frames (n)" = info$video$frames,
+        "Start - End (frames)" = paste0(input$framesEdit[1], " - ", input$framesEdit[2]),
         "Video size (px)" = paste0(info$video$width, " x ", info$video$height),
         "X0 (px)" = round(source_coords$xy[2, 1], 0),
         "Y0 (px)" = round(source_coords$xy[2, 2], 0),
@@ -665,7 +762,8 @@ server <- function(input, output, session) {
     labels <-
       c(
         "File name",
-        "Frames",
+        "Frames (n)",
+        "Start - End (frames)",
         "Video size (px)",
         "X0 (px)",
         "Y0 (px)",
@@ -709,29 +807,6 @@ server <- function(input, output, session) {
       )
     )
   })
-  
-  # download gif file generated by 8 output files ---------------------------------------------------------
-  output[["downloadGIF"]] <-
-    shiny::downloadHandler(
-      filename = function() {
-        paste0("output.gif")
-      },
-      content = function(file) {
-        shiny::req(Video())
-        # create gif file
-        magick::image_write(magick::image_read(
-          list.files(
-            path = file.path(dir.name, "8 output"),
-            recursive = TRUE,
-            include.dirs = TRUE,
-            full.names = TRUE,
-            pattern = "png"
-          )
-        ),
-        path = file,
-        format = "gif")
-      }
-    )
   
   # download MP4 file generated by 8 output files ---------------------------------------------------------
   output[["downloadMP4"]] <-
@@ -783,8 +858,10 @@ server <- function(input, output, session) {
   
   # plot results of th CSV files ---------------------------------------------------------
   output[["plotResults"]] <- shiny::renderImage({
-    shiny::req(Video())
-    info <- av::av_media_info(Video())
+    shiny::req(file.path(dir.name, "outputvideo.mp4"))
+    # Get video info such as width, height, format, duration and framerate
+    info <- av::av_media_info(file.path(dir.name, "outputvideo.mp4"))
+    
     source("f_plot.R", local = TRUE)
     img <- htmltools::capturePlot({
       plot.trajectory(res.dir = file.path(dir.name, "CSV"),

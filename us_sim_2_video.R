@@ -1,5 +1,5 @@
 # dir for storing images
-raw.dir <- "1 raw"
+raw.dir <- "0 raw"
 # delete folder if it already exists
 if (dir.exists(raw.dir) ) {unlink(file.path(raw.dir), recursive = TRUE)}
 dir.create(file.path(raw.dir), showWarnings = FALSE)

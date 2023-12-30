@@ -22,7 +22,7 @@ us_track <- function(center.ini = NULL,
   }
   
   # dir for storing images
-  raw.dir <- file.path("www", "1 raw")
+  raw.dir <- file.path("www", "0 raw")
   # delete folder if it already exists
   if (dir.exists(raw.dir)) {
     unlink(file.path(raw.dir), recursive = TRUE)
