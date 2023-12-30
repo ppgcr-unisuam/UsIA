@@ -217,7 +217,7 @@ ui <- shiny::fluidPage(
           shiny::HTML(
             "<p>1. Upload a video file (.mp4) with the <b>Upload video</b>.</p>
             <p>2. If necessary, edit the video by subsetting the uploaded video using <b>Edit</b>.</p>
-            <p>3. Select the region of interest (ROI) with the <b>Select ROI</b>.</p>
+            <p>3. Click <b>Select ROI</b> to set the region of interest (ROI) for analysis. Click on the screen to mark the center of the ROI.</p>
             <p>4. Adjust the parameters for analysis:</p>
             <p>   - <i>Object size</i>: '1' to '201' (odd numbers only).</p>
             <p>   - <i>Overlap</i>: '0' to '100%'.</p>
@@ -269,12 +269,12 @@ ui <- shiny::fluidPage(
           shiny::HTML("<b>Cite as</b>"),
           shiny::br(),
           shiny::HTML(
-            "Ferreira, A.S. (2023). UsIA | Ultrasound Image Analysis (1.0.0). Zenodo. https://doi.org/10.5281/zenodo.10439719"
+            "Ferreira, A.S. (2023). UsIA | Ultrasound Image Analysis (1.0.0). Zenodo. https://doi.org/10.5281/zenodo.10439718"
           ),
           shiny::br(),
           shiny::br(),
           shiny::HTML(
-            "<a href=\"https://doi.org/10.5281/zenodo.10439719\" style=\"vertical-align:middle;\"><img src=\"https://zenodo.org/badge/DOI/10.5281/zenodo.10439719.svg\" alt=\"DOI\"  style=\"vertical-align:top;\"></a>"
+            "<a href=\"https://doi.org/10.5281/zenodo.10439718\" style=\"vertical-align:middle;\"><img src=\"https://zenodo.org/badge/DOI/10.5281/zenodo.10439718.svg\" alt=\"DOI\"  style=\"vertical-align:top;\"></a>"
           ),
           shiny::br(),
         ),
