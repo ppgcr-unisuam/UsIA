@@ -376,7 +376,7 @@ ui <- shiny::fluidPage(
         )
       )
     )
-  ),
+  )
 )
 
 # Define server script
