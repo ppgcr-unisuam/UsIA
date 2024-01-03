@@ -18,6 +18,10 @@ library(BiocManager)
 library(EBImage)
 
 ui <- shiny::fluidPage(
+  shiny::tags$head(
+    shiny::tags$link(rel = "stylesheet", href = "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css")
+  ),
+  
   # use shinythemes
   theme = shinythemes::shinytheme("flatly"),
   
@@ -45,7 +49,7 @@ ui <- shiny::fluidPage(
           id = "refresh",
           class = "btn btn-primary",
           href = "javascript:history.go(0)",
-          tags$i(class = "fa fa-refresh fa-1x"),
+          shiny::HTML('<i class="fa fa-refresh fa-1x"></i>'),
           title = "Reset",
           style = "color:white; border-color:white; border-radius:100%"
         ),
@@ -387,7 +391,7 @@ server <- function(input, output, session) {
   
   # observe plot clic event ---------------------------------------------------------
   shiny::observeEvent(input$plot_click, {
-    source_coords$xy[2,] <- c(input$plot_click$x, input$plot_click$y)
+    source_coords$xy[2, ] <- c(input$plot_click$x, input$plot_click$y)
   })
   
   # change to tab Edit under event ---------------------------------------------------------
@@ -860,7 +864,8 @@ server <- function(input, output, session) {
   output[["plotResults"]] <- shiny::renderImage({
     shiny::req(file.path(dir.name, "outputvideo.mp4"))
     # Get video info such as width, height, format, duration and framerate
-    info <- av::av_media_info(file.path(dir.name, "outputvideo.mp4"))
+    info <-
+      av::av_media_info(file.path(dir.name, "outputvideo.mp4"))
     
     source("f_plot.R", local = TRUE)
     img <- htmltools::capturePlot({
