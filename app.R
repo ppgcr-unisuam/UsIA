@@ -17,9 +17,12 @@ library(dplyr)
 library(BiocManager)
 library(EBImage)
 
+# use this code to debug
+# rsconnect::showLogs()
+
 ui <- shiny::fluidPage(
-  shiny::tags$head(
-    shiny::tags$link(rel = "stylesheet", href = "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css")
+  htmltools::tags$head(
+    htmltools::tags$link(rel = "stylesheet", href = "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css")
   ),
   
   # use shinythemes
@@ -45,7 +48,7 @@ ui <- shiny::fluidPage(
       ),
       shiny::column(
         3,
-        tags$a(
+        htmltools::tags$a(
           id = "refresh",
           class = "btn btn-primary",
           href = "javascript:history.go(0)",
@@ -60,12 +63,12 @@ ui <- shiny::fluidPage(
   ),
   
   # change color of fileInput button
-  shiny::tags$head(shiny::tags$style(
-    HTML(".btn-file {background-color: #2C3E50;}")
+  htmltools::tags$head(htmltools::tags$style(
+    shiny::HTML(".btn-file {background-color: #2C3E50;}")
   )),
   
   # control labels to the left
-  shiny::tags$style(
+  htmltools::tags$style(
     shiny::HTML(
       "
     .label-left .form-group {
@@ -385,6 +388,7 @@ ui <- shiny::fluidPage(
 
 # Define server script
 server <- function(input, output, session) {
+  
   # store plot click coords
   source_coords <-
     shiny::reactiveValues(xy = data.frame(x = c(1, 1),  y = c(1, 1)))
@@ -400,7 +404,7 @@ server <- function(input, output, session) {
                              selected = "Edit")
   })
   
-  # change to tab ROI under event ---------------------------------------------------------
+  # change to tab Input under event ---------------------------------------------------------
   shiny::observeEvent(input[["InputFile"]], {
     shiny::updateTabsetPanel(inputId = "tabResults",
                              selected = "Input")
@@ -412,7 +416,7 @@ server <- function(input, output, session) {
                              selected = "ROI")
   })
   
-  # change to tab Analyze under event ---------------------------------------------------------
+  # change to tab Output under event ---------------------------------------------------------
   shiny::observeEvent(input[["buttAnalyze"]], {
     shiny::updateTabsetPanel(inputId = "tabResults",
                              selected = "Output")
@@ -445,7 +449,7 @@ server <- function(input, output, session) {
   Video <- shiny::eventReactive(input[["InputFile"]], {
     input[["InputFile"]][["datapath"]]
   })
-  videoname <- reactive ({
+  videoname <- shiny::reactive ({
     paste(input$InputFile)
   })
   
@@ -483,11 +487,11 @@ server <- function(input, output, session) {
     )
     
     # show input video
-    tags$video(
+    htmltools::tags$video(
       width = "90%",
       height = "90%",
       controls = "",
-      tags$source(src = "rawvideo.mp4", type = "video/mp4")
+      htmltools::tags$source(src = "rawvideo.mp4", type = "video/mp4")
     )
   })
   
@@ -528,11 +532,11 @@ server <- function(input, output, session) {
     )
     
     # show video
-    tags$video(
+    htmltools::tags$video(
       width = "90%",
       height = "90%",
       controls = "",
-      tags$source(src = "editedvideo.mp4", type = "video/mp4")
+      htmltools::tags$source(src = "editedvideo.mp4", type = "video/mp4")
     )
   })
   
@@ -683,11 +687,11 @@ server <- function(input, output, session) {
       framerate = info$video$framerate
     )
     # show video
-    tags$video(
+    htmltools::tags$video(
       width = "90%",
       height = "90%",
       controls = "",
-      tags$source(src = "outputvideo.mp4", type = "video/mp4")
+      htmltools::tags$source(src = "outputvideo.mp4", type = "video/mp4")
     )
   })
   
