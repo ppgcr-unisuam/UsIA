@@ -189,7 +189,7 @@ ui <- shiny::fluidPage(
             inputId = "buttAnalyze",
             label = "Analyze",
             class = "btn-primary",
-            style = "width:100%; border-color:white; border-radius: 10px;",
+            style = "width:100%; border-color:white; border-radius: 10px; font-size:150%;",
             shiny::icon("play")
           ),
           shiny::br(),
@@ -675,17 +675,22 @@ server <- function(input, output, session) {
         img,
         xlim = c(0, info$video$width),
         ylim = c(0, info$video$height),
-        asp = 1
+        asp = 1,
+        col = pal
       )
       # draw trajectory
-      points(
-        x = path$X, y = path$Y, type = "p",
+      par(new = TRUE)
+      par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
+      plot(
+        x = path$X[1:i], y = path$Y[1:i],
         xlim = c(0, info$video$width),
         ylim = c(0, info$video$height),
-        col = "red", pch = 20, cex = 2
+        asp = 1,
+        col = "red",
+        type = "p", pch = 20, cex = 2
       )
       # close to save the image
-      grDevices::dev.off()
+      dev.off()
     }
     
     # build mp4 video using av video package from out.dir files
