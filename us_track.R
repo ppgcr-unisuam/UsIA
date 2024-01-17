@@ -78,7 +78,7 @@ us_track <- function(center.ini = NULL,
   dir.create(file.path(morph.dir), showWarnings = FALSE)
   shiny::addResourcePath(prefix = "www", directoryPath = morph.dir)
   
-  # dir for storing images AFTER tracking
+  # dir for storing images AFTER prrocess
   out.dir <- file.path("www", "8 output")
   # delete folder if it already exists
   if (dir.exists(out.dir)) {

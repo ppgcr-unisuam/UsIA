@@ -9,7 +9,7 @@ f_equalize <-
       round(EBImage::equalize(frame.detrend, range = c(0, 255), levels = 256), 0)
     
     if (show.plot == TRUE) {
-      par(mar = rep(0, 4), oma = rep(0, 4))
+      par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
       # rotate 90 degrees clockwise to plot with "image"
       rotate <- function(x)
         t(apply(x, 2, rev))
@@ -24,7 +24,7 @@ f_equalize <-
                   paste("image_", paste(rep(
                     "0", 6 - nchar(frame)
                   ), collapse = ""), frame, ".png", sep = ""))
-      par(mar = rep(0, 4), oma = rep(0, 4))
+      par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
       # rotate 90 degrees clockwise to plot with "image"
       rotate <- function(x)
         t(apply(x, 2, rev))

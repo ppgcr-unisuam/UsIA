@@ -29,7 +29,7 @@ f_spatial_filter <-
       }
     }
     if (show.plot == TRUE) {
-      par(mar = rep(0, 4), oma = rep(0, 4))
+      par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
       # rotate 90 degrees clockwise to plot with "image"
       rotate <- function(x)
         t(apply(x, 2, rev))
@@ -43,7 +43,7 @@ f_spatial_filter <-
                   paste("image_", paste(rep(
                     "0", 6 - nchar(frame)
                   ), collapse = ""), frame, ".png", sep = ""))
-      par(mar = rep(0, 4), oma = rep(0, 4))
+      par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
       # rotate 90 degrees clockwise to plot with "image"
       rotate <- function(x)
         t(apply(x, 2, rev))

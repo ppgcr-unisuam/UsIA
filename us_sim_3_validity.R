@@ -79,7 +79,7 @@ if (!is.na(match("batch.simulation", ls(all.names = TRUE, envir = .GlobalEnv))))
       min(trajectory.sim[, 1], trajectory.meas[, 1]),
       max(trajectory.sim[, 1], trajectory.meas[, 1])
     ),
-    asp = NA,
+    asp = 1,
     col = "black",
     type = "p",
     lty = 1,
@@ -111,7 +111,7 @@ if (!is.na(match("batch.simulation", ls(all.names = TRUE, envir = .GlobalEnv))))
       min(trajectory.sim[, 2], trajectory.meas[, 2]),
       max(trajectory.sim[, 2], trajectory.meas[, 2])
     ),
-    asp = NA,
+    asp = 1,
     col = "black",
     type = "p",
     lty = 1,

@@ -112,9 +112,11 @@ sim.us <- function(x0, y0) {
                       initial = 0)
   grDevices::png(
     file.path(raw.dir, "image_%06d.png"),
-    width = info$video$width,
-    height = info$video$height,
-    res = 72
+    width = (info$video$width),
+    height = (info$video$height),
+    units = "px",
+    res = 1,
+    type = "cairo"
   )
   
   # loop for images creation
@@ -188,7 +190,7 @@ sim.us <- function(x0, y0) {
                                              2), base = 10)
     
     # plotting the image
-    par(mar = rep(0, 4), oma = rep(0, 4))
+    par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
     image(matriz, axes = F, col = pal)
     legend(
       "topleft",
@@ -253,7 +255,7 @@ if (!is.na(match("batch.simulation", ls(all.names = TRUE, envir = .GlobalEnv))))
     trajectory.sim,
     xlim = c(0, info$video$width),
     ylim = c(0, info$video$height),
-    asp = NA,
+    asp = 1,
     col = "blue",
     type = "b",
     lty = 1,

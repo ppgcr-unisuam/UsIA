@@ -28,17 +28,17 @@ f_first_frame <-
     cur.frame.raw <- grDevices::as.raster(magick::image_read(file))
     
     # config and initialize plot
-    par(mar = rep(0, 4), oma = rep(0, 4))
+    par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
     plot(
       NULL,
       xlim = c(0, info$video$width),
       ylim = c(0, info$video$height),
-      asp = NA,
+      asp = 1,
       col = pal
     )
     par(new = TRUE)
     # show raw frame
-    plot(cur.frame.raw, asp = NA, col = pal)
+    plot(cur.frame.raw, asp = 1, col = pal)
     
     if (!is.na(match("batch.simulation", ls(
       all.names = TRUE, envir = .GlobalEnv

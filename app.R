@@ -1,28 +1,34 @@
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-# http://shiny.rstudio.com/
-
-# create dir for online app
+# create dir
 dir.name <- 'www'
-if (!dir.exists(dir.name))
+if (!dir.exists(dir.name)){
   dir.create(dir.name, recursive = TRUE, showWarnings = FALSE)
+}
 shiny::addResourcePath(prefix = "www", directoryPath = "www")
 
 # load libraries
-# source("required_packages.R", local = TRUE)
 library(dplyr)
+library(htmltools)
 library(BiocManager)
 library(EBImage)
+
+# source all scripts
+source("f_process_color.R", local = TRUE)
+source("f_process_detrend.R", local = TRUE)
+source("f_process_equalization.R", local = TRUE)
+source("f_process_filter.R", local = TRUE)
+source("f_process_morphological.R", local = TRUE)
+source("f_process_threshold.R", local = TRUE)
+source("f_process_track.R", local = TRUE)
+source("f_track_all.R", local = TRUE)
+source("f_track_first.R", local = TRUE)
+source("us_track.R", local = TRUE)
 
 # use this code to debug
 # rsconnect::showLogs()
 
 ui <- shiny::fluidPage(
-  htmltools::tags$head(
-    htmltools::tags$link(rel = "stylesheet", href = "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css")
+  tags$head(
+    tags$link(rel = "stylesheet", href = "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css")
   ),
   
   # use shinythemes
@@ -48,7 +54,7 @@ ui <- shiny::fluidPage(
       ),
       shiny::column(
         3,
-        htmltools::tags$a(
+        tags$a(
           id = "refresh",
           class = "btn btn-primary",
           href = "javascript:history.go(0)",
@@ -63,12 +69,12 @@ ui <- shiny::fluidPage(
   ),
   
   # change color of fileInput button
-  htmltools::tags$head(htmltools::tags$style(
+  tags$head(tags$style(
     shiny::HTML(".btn-file {background-color: #2C3E50;}")
   )),
   
   # control labels to the left
-  htmltools::tags$style(
+  tags$style(
     shiny::HTML(
       "
     .label-left .form-group {
@@ -81,10 +87,10 @@ ui <- shiny::fluidPage(
       margin-right: 2rem;         /* Add spacing between label and slider */
       align-self: center;         /* Vertical align in center of row */
       text-align: right;
-      flex-basis: 35%;          /* Target width for label */
+      flex-basis: 20%;          /* Target width for label */
     }
     .label-left .irs {
-      flex-basis: 65%;          /* Target width for slider */
+      flex-basis: 80%;          /* Target width for slider */
     }
     "
     )
@@ -106,30 +112,33 @@ ui <- shiny::fluidPage(
             buttonLabel = list(fontawesome::fa("video"), " Upload video"),
             accept = c(".mp4")
           ),
-          shiny::actionButton(
-            inputId = "buttEdit",
-            label = "Edit video",
-            class = "btn-primary",
-            style = "width:100%; border-color:white; border-radius: 10px;",
-            shiny::icon("edit")
+          shiny::fluidRow(shiny::column(
+            6,
+            shiny::actionButton(
+              inputId = "buttEdit",
+              label = "Edit",
+              class = "btn-primary",
+              style = "width:100%; border-color:white; border-radius: 10px;",
+              shiny::icon("edit")
+            ),
           ),
-          shiny::br(),
-          shiny::br(),
-          shiny::actionButton(
-            inputId = "buttROI",
-            label = "Select ROI",
-            class = "btn-primary",
-            style = "width:100%; border-color:white; border-radius: 10px;",
-            shiny::icon("crop")
-          ),
-          shiny::br(),
+          shiny::column(
+            6,
+            shiny::actionButton(
+              inputId = "buttROI",
+              label = "ROI",
+              class = "btn-primary",
+              style = "width:100%; border-color:white; border-radius: 10px;",
+              shiny::icon("crop")
+            ),
+          ),),
           shiny::br(),
           shiny::HTML("<center>"),
           div(
             class = "label-left",
             shiny::sliderInput(
               inputId = "KernelSize",
-              label = "Object size (px)",
+              label = "Object (px)",
               min = 1,
               max = 201,
               value = 50,
@@ -139,7 +148,7 @@ ui <- shiny::fluidPage(
             ),
             shiny::sliderInput(
               inputId = "Overlap",
-              label = "Overlap (%)",
+              label = "ROI (%)",
               min = 0,
               max = 100,
               value = 50,
@@ -149,7 +158,7 @@ ui <- shiny::fluidPage(
             ),
             shiny::radioButtons(
               inputId = "FilterType",
-              label = "Filter type",
+              label = "Filter",
               choices = c("none", "mean", "median"),
               selected = "none",
               inline = TRUE,
@@ -157,7 +166,7 @@ ui <- shiny::fluidPage(
             ),
             shiny::sliderInput(
               inputId = "FilterSize",
-              label = "Filter size (px)",
+              label = "Size (px)",
               min = 1,
               max = 11,
               value = 1,
@@ -459,6 +468,9 @@ server <- function(input, output, session) {
     # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
     
+    # center ROI for the first time
+    source_coords$xy[2, ] <- c(info$video$width / 2, info$video$height / 2)
+    
     # copy and rename file
     file.copy(from = Video(),
               to = file.path(dir.name, "rawvideo.mp4"))
@@ -469,6 +481,9 @@ server <- function(input, output, session) {
       format = "png",
       fps = NULL
     )
+    
+    # copy raw files to edit folder
+    R.utils::copyDirectory(file.path(dir.name, "0 raw"), file.path(dir.name, "1 edited"))
     
     # copy and rename file
     file.copy(from = Video(),
@@ -487,11 +502,11 @@ server <- function(input, output, session) {
     )
     
     # show input video
-    htmltools::tags$video(
+    tags$video(
       width = "90%",
       height = "90%",
       controls = "",
-      htmltools::tags$source(src = "rawvideo.mp4", type = "video/mp4")
+      tags$source(src = "rawvideo.mp4", type = "video/mp4")
     )
   })
   
@@ -515,7 +530,7 @@ server <- function(input, output, session) {
     # delete previous edit files
     unlink(
       list.files(
-        path = file.path(dir.name, "1 edit"),
+        path = file.path(dir.name, "1 edited"),
         recursive = TRUE,
         include.dirs = TRUE,
         full.names = TRUE,
@@ -526,40 +541,42 @@ server <- function(input, output, session) {
     # Splits a video file in a set of image files. Use format = "png" for losless images
     av::av_video_images(
       video = file.path(dir.name, "editedvideo.mp4"),
-      destdir = file.path(dir.name, "1 edit"),
+      destdir = file.path(dir.name, "1 edited"),
       format = "png",
       fps = NULL
     )
     
     # show video
-    htmltools::tags$video(
+    tags$video(
       width = "90%",
       height = "90%",
       controls = "",
-      htmltools::tags$source(src = "editedvideo.mp4", type = "video/mp4")
+      tags$source(src = "editedvideo.mp4", type = "video/mp4")
     )
   })
   
   # show PNG file of 1st frame ---------------------------------------------------------
   output[["plotROI"]] <- shiny::renderPlot({
-    shiny::req(Video(), input$framesEdit)
+    shiny::req(Video())
     # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
     
     # show 1st frame
     img <-
-      magick::image_read(list.files(
-        file.path(dir.name, "1 edit"),
-        full.names = TRUE,
-        pattern = "png"
-      ))[1]
+      magick::image_read(
+        list.files(
+          path = file.path(dir.name, "1 edited"),
+          full.names = TRUE,
+          pattern = "png")[1]
+        )
+    
     # color palette (grayscale)
     pal <- grDevices::gray(seq(
       from = 0,
       to = 1,
       length.out = 256
     ), alpha = NULL)
-    par(mar = rep(0, 4), oma = rep(0, 4))
+    par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
     plot(
       img,
       xlim = c(0, info$video$width),
@@ -614,23 +631,11 @@ server <- function(input, output, session) {
     (session$clientData$output_plotROI_width) * (0.6585)
   })
   
-  # process and play video ---------------------------------------------------------
+  # process, play and export video ---------------------------------------------------------
   shiny::observeEvent(input[["buttAnalyze"]], {
     shiny::req(Video())
     # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
-    
-    # source all scripts
-    source("f_process_color.R", local = TRUE)
-    source("f_process_detrend.R", local = TRUE)
-    source("f_process_equalization.R", local = TRUE)
-    source("f_process_filter.R", local = TRUE)
-    source("f_process_morphological.R", local = TRUE)
-    source("f_process_threshold.R", local = TRUE)
-    source("f_process_track.R", local = TRUE)
-    source("f_track_all.R", local = TRUE)
-    source("f_track_first.R", local = TRUE)
-    source("us_track.R", local = TRUE)
     
     # Capture the result of us_track function call
     us_track(
@@ -648,35 +653,42 @@ server <- function(input, output, session) {
     path <-
       read.csv(file.path(dir.name, "CSV", "trajectory_measured.csv"))
     for (i in 1:length(list.files(file.path(dir.name, "8 output")))) {
-      # read image from file
-      im <-
-        magick::image_read(file.path(dir.name, "8 output", paste0(
-          "image_", sprintf("%06d", i), ".png"
-        )))
-      im <- magick::image_draw(im)
+      # read image from file and plot
+      img <- png::readPNG(file.path(dir.name, "8 output", paste0("image_", sprintf("%06d", i), ".png")))
+      img <- grDevices::as.raster(img[, , 1:3])
+      png(
+        filename = file.path(dir.name, "8 output", paste0("image_", sprintf("%06d", i), ".png")),
+        width = (info$video$width),
+        height = (info$video$height),
+        units = "px",
+        res = 1,
+        type = "cairo"
+      )
+      # color palette (grayscale)
+      pal <- grDevices::gray(seq(
+        from = 0,
+        to = 1,
+        length.out = 256
+      ), alpha = NULL)
+      par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
+      plot(
+        img,
+        xlim = c(0, info$video$width),
+        ylim = c(0, info$video$height),
+        asp = 1
+      )
       # draw trajectory
       points(
-        path$X[1:i],
-        info$video$height - path$Y[1:i],
-        col = "red",
-        pch = 20,
-        cex = 0.5
+        x = path$X, y = path$Y, type = "p",
+        xlim = c(0, info$video$width),
+        ylim = c(0, info$video$height),
+        col = "red", pch = 20, cex = 2
       )
-      # save image
-      magick::image_write(im, path = file.path(dir.name, "8 output", paste0(
-        "image_", sprintf("%06d", i), ".png"
-      )))
-      dev.off()
+      # close to save the image
+      grDevices::dev.off()
     }
-  })
-  
-  # show MP4 video of output file
-  output[["videooutput"]] <- shiny::renderUI({
-    shiny::req(Video())
-    # Get video info such as width, height, format, duration and framerate
-    info <- av::av_media_info(Video())
     
-    # build mp4 video using av video packafe from out.dir files
+    # build mp4 video using av video package from out.dir files
     av::av_encode_video(
       input = list.files(
         file.path(dir.name, "8 output"),
@@ -686,12 +698,20 @@ server <- function(input, output, session) {
       output = file.path(dir.name, "outputvideo.mp4"),
       framerate = info$video$framerate
     )
+  })
+  
+  # show MP4 video of output file
+  output[["videooutput"]] <- shiny::renderUI({
+    shiny::req(Video())
+    # Get video info such as width, height, format, duration and framerate
+    info <- av::av_media_info(Video())
+    
     # show video
-    htmltools::tags$video(
+    tags$video(
       width = "90%",
       height = "90%",
       controls = "",
-      htmltools::tags$source(src = "outputvideo.mp4", type = "video/mp4")
+      tags$source(src = "outputvideo.mp4", type = "video/mp4")
     )
   })
   
