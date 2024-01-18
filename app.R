@@ -109,7 +109,7 @@ ui <- shiny::fluidPage(
             inputId = "InputFile",
             label = NULL,
             multiple = FALSE,
-            buttonLabel = list(fontawesome::fa("video"), " Upload video"),
+            buttonLabel = list(fontawesome::fa("video"), "Upload"),
             accept = c(".mp4")
           ),
           shiny::fluidRow(shiny::column(
@@ -653,44 +653,44 @@ server <- function(input, output, session) {
     path <-
       read.csv(file.path(dir.name, "CSV", "trajectory_measured.csv"))
     for (i in 1:length(list.files(file.path(dir.name, "8 output")))) {
-      # read image from file and plot
+      # read image from file
       img <- png::readPNG(file.path(dir.name, "8 output", paste0("image_", sprintf("%06d", i), ".png")))
       img <- grDevices::as.raster(img[, , 1:3])
-      png(
+      
+      # create a ggplot object with the image in background and trajectory as data points
+      par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
+      ggplot2::ggplot() +
+        ggplot2::annotation_raster(
+          img,
+          xmin = 0,
+          xmax = info$video$width,
+          ymin = 0,
+          ymax = info$video$height,
+          interpolate = TRUE
+        ) +
+        ggplot2::geom_point(
+          data = path[1:i,],
+          ggplot2::aes(x = X, y = Y),
+          colour = "red",
+          size = 100
+        ) +
+        ggplot2::scale_x_continuous(limits = c(0, info$video$width),
+                                    expand = c(0, 0)) +
+        ggplot2::scale_y_continuous(limits = c(0, info$video$height),
+                                    expand = c(0, 0)) +
+        ggplot2::coord_fixed() +
+        ggplot2::theme_void()
+      
+      # save ggplot as png
+      ggplot2::ggsave(
         filename = file.path(dir.name, "8 output", paste0("image_", sprintf("%06d", i), ".png")),
-        width = (info$video$width),
-        height = (info$video$height),
+        width = info$video$width,
+        height = info$video$height,
         units = "px",
-        res = 1,
-        type = "cairo"
+        dpi = 1,
+        type = "cairo",
+        limitsize = FALSE
       )
-      # color palette (grayscale)
-      pal <- grDevices::gray(seq(
-        from = 0,
-        to = 1,
-        length.out = 256
-      ), alpha = NULL)
-      par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
-      plot(
-        img,
-        xlim = c(0, info$video$width),
-        ylim = c(0, info$video$height),
-        asp = 1,
-        col = pal
-      )
-      # draw trajectory
-      par(new = TRUE)
-      par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
-      plot(
-        x = path$X[1:i], y = path$Y[1:i],
-        xlim = c(0, info$video$width),
-        ylim = c(0, info$video$height),
-        asp = 1,
-        col = "red",
-        type = "p", pch = 20, cex = 2
-      )
-      # close to save the image
-      dev.off()
     }
     
     # build mp4 video using av video package from out.dir files
