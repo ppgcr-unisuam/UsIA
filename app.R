@@ -27,6 +27,18 @@ source("us_track.R", local = TRUE)
 # rsconnect::showLogs()
 
 ui <- shiny::fluidPage(
+  # add favicon
+  shiny::tags$head(
+    shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/favicon.ico"),
+    shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/android-chrome-192x192.png"),
+    shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/android-chrome-512x512.png"),
+    shiny::tags$link(rel = "apple-touch-icon", href = "www/favicon_io/apple-touch-icon.png"),
+    shiny::tags$link(rel = "icon", href = "www/favicon_io/favicon-16x16.png"),
+    shiny::tags$link(rel = "icon", href = "www/favicon_io/favicon-32x32.png"),
+    shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/favicon.ico"),
+  ),
+
+  # add font awesome
   tags$head(
     tags$link(rel = "stylesheet", href = "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css")
   ),
