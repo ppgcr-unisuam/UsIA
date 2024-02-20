@@ -5,6 +5,9 @@ if (!dir.exists(dir.name)){
 }
 shiny::addResourcePath(prefix = "www", directoryPath = "www")
 
+# copy favicon folder to the www dir
+R.utils::copyDirectory(from = "favicon_io", to = file.path(dir.name, "favicon_io"))
+
 # load libraries
 library(dplyr)
 library(htmltools)
@@ -923,16 +926,6 @@ server <- function(input, output, session) {
   
   # reset button ---------------------------------------------------------
   shinyjs::onclick("refresh", {
-    # delete temp files
-    unlink(
-      list.files(
-        path = dir.name,
-        recursive = TRUE,
-        include.dirs = TRUE,
-        full.names = TRUE,
-        pattern = "gif"
-      )
-    )
     unlink(
       list.files(
         path = dir.name,
