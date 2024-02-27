@@ -111,163 +111,239 @@ ui <- shiny::fluidPage(
     )
   ),
   
-  # Sidebar with controls
-  ui_sidebar <- shiny::sidebarLayout(
-    shiny::sidebarPanel(
+    # Main panel for displaying outputs ----
       shiny::tabsetPanel(
-        id = "tab",
+        id = "tabResults",
         type = "tabs",
         shiny::tabPanel(
-          title = "Controls",
+          title = list(fontawesome::fa("right-to-bracket"), "Input"),
           shiny::br(),
           shiny::fileInput(
             inputId = "InputFile",
             label = NULL,
             multiple = FALSE,
-            buttonLabel = list(fontawesome::fa("video"), "Upload"),
-            accept = c(".mp4")
+            buttonLabel = list(fontawesome::fa("file-video"), "Upload"),
+            accept = c(".mp4"),
+            width = "100%",
           ),
-          shiny::fluidRow(shiny::column(
-            6,
-            shiny::actionButton(
-              inputId = "buttEdit",
-              label = "Edit",
-              class = "btn-primary",
-              style = "width:100%; border-color:white; border-radius: 10px;",
-              shiny::icon("edit")
+          shiny::tabsetPanel(
+            id = "tabInput",
+            type = "tabs",
+            shiny::tabPanel(
+              title = list(fontawesome::fa("video"), "Video"),
+              shiny::br(),
+              shiny::uiOutput(outputId = "videoraw"),
+              align = "center"
             ),
-          ),
-          shiny::column(
-            6,
-            shiny::actionButton(
-              inputId = "buttROI",
-              label = "ROI",
-              class = "btn-primary",
-              style = "width:100%; border-color:white; border-radius: 10px;",
-              shiny::icon("crop")
-            ),
-          ),),
-          shiny::br(),
-          shiny::HTML("<center>"),
-          div(
-            class = "label-left",
-            shiny::sliderInput(
-              inputId = "KernelSize",
-              label = "Object (px)",
-              min = 1,
-              max = 201,
-              value = 50,
-              step = 2,
-              ticks = FALSE,
-              width = "100%",
-            ),
-            shiny::sliderInput(
-              inputId = "Overlap",
-              label = "ROI (%)",
-              min = 0,
-              max = 100,
-              value = 50,
-              step = 5,
-              ticks = FALSE,
-              width = "100%",
-            ),
-            shiny::radioButtons(
-              inputId = "FilterType",
-              label = "Filter",
-              choices = c("none", "mean", "median"),
-              selected = "none",
-              inline = TRUE,
-              width = "100%"
-            ),
-            shiny::sliderInput(
-              inputId = "FilterSize",
-              label = "Size (px)",
-              min = 1,
-              max = 11,
-              value = 1,
-              step = 2,
-              ticks = FALSE,
-              width = "100%",
-            ),
-            shiny::sliderInput(
-              inputId = "Jump",
-              label = "Jump (frames)",
-              min = 0,
-              max = 5,
-              value = 0,
-              ticks = FALSE,
-              width = "100%",
+            shiny::tabPanel(
+              title = list(fontawesome::fa("edit"), "Edit"),
+              shiny::br(),
+              shiny::uiOutput(outputId = "videoedit"),
+              shiny::br(),
+              shiny::sliderInput(
+                inputId = "framesEdit",
+                label = "Frames",
+                min = 1,
+                max = 100,
+                value = c(1, 100),
+                step = 1,
+                ticks = FALSE,
+                animate = TRUE,
+                width = "100%"
+              ),
+              align = "center"
             ),
           ),
-          shiny::HTML("</center>"),
-          shiny::actionButton(
-            inputId = "buttAnalyze",
-            label = "Analyze",
-            class = "btn-primary",
-            style = "width:100%; border-color:white; border-radius: 10px; font-size:150%;",
-            shiny::icon("play")
-          ),
-          shiny::br(),
-          shiny::br(),
-          shiny::fluidRow(
-            shiny::column(
-              4,
-              shiny::actionButton(
-                inputId = "buttPlots",
-                label = "Plots",
-                class = "btn-primary",
-                style = "width:100%; border-color:white; border-radius: 10px;",
-                shiny::icon("chart-bar")
-              )
-            ),
-            shiny::column(
-              4,
-              shiny::actionButton(
-                inputId = "buttTable",
-                label = "Table",
-                class = "btn-primary",
-                style = "width:100%; border-color:white; border-radius: 10px;",
-                shiny::icon("table")
-              )
-            ),
-            shiny::column(
-              4,
-              shiny::actionButton(
-                inputId = "buttDowns",
-                label = "Download",
-                class = "btn-primary",
-                style = "width:100%; border-color:white; border-radius: 10px;",
-                shiny::icon("download")
-              )
-            )
-          )
         ),
         shiny::tabPanel(
-          title = "Instructions",
+          title = list(fontawesome::fa("ruler"), "Measure"),
+          shiny::br(),
+          shiny::tabsetPanel(
+            id = "tabMeasure",
+            type = "tabs",
+            shiny::tabPanel(
+              title = list(fontawesome::fa("image"), "Frame"),
+              shiny::br(),
+              shiny::plotOutput(
+                outputId = "plotMeasure",
+                width = "auto",
+                click = "img_click"
+              ),
+              shiny::br(),
+              shiny::sliderInput(
+                inputId = "imgEdit",
+                label = "Frames",
+                min = 1,
+                max = 100,
+                value = 1,
+                step = 1,
+                ticks = FALSE,
+                animate = TRUE,
+                width = "100%"
+              ),
+              align = "center"
+            ),
+          ),
+        ),
+        shiny::tabPanel(
+          title = list(fontawesome::fa("arrow-trend-up"), "Track"),
+          shiny::br(),
+          shiny::tabsetPanel(
+            id = "tabTrack",
+            type = "tabs",
+            shiny::tabPanel(
+              title = list(fontawesome::fa("sliders"), "Setup"),
+              shiny::br(),
+                shiny::sliderInput(
+                  inputId = "KernelSize",
+                  label = "Object (px)",
+                  min = 1,
+                  max = 201,
+                  value = 50,
+                  step = 2,
+                  ticks = FALSE,
+                  width = "100%",
+                ),
+                shiny::sliderInput(
+                  inputId = "Overlap",
+                  label = "ROI (%)",
+                  min = 0,
+                  max = 100,
+                  value = 50,
+                  step = 5,
+                  ticks = FALSE,
+                  width = "100%",
+                ),
+                shiny::radioButtons(
+                  inputId = "FilterType",
+                  label = "Filter",
+                  choices = c("none", "mean", "median"),
+                  selected = "none",
+                  inline = TRUE,
+                  width = "100%"
+                ),
+                shiny::sliderInput(
+                  inputId = "FilterSize",
+                  label = "Size (px)",
+                  min = 1,
+                  max = 11,
+                  value = 1,
+                  step = 2,
+                  ticks = FALSE,
+                  width = "100%",
+                ),
+                shiny::sliderInput(
+                  inputId = "Jump",
+                  label = "Jump (frames)",
+                  min = 0,
+                  max = 5,
+                  value = 0,
+                  ticks = FALSE,
+                  width = "100%",
+              ),
+              align = "center"
+            ),
+            shiny::tabPanel(
+              title = list(fontawesome::fa("crop"), "ROI"),
+              shiny::br(),
+              shiny::plotOutput(
+                outputId = "plotROI",
+                width = "auto",
+                click = "roi_click"
+              ),
+              shiny::br(),
+              shiny::actionButton(
+                inputId = "buttAnalyze",
+                label = "Analyze",
+                class = "btn-primary",
+                style = "width:100%; border-color:white; border-radius: 10px; font-size:150%;",
+                icon("play")
+              ),
+              align = "center"
+            ),
+            shiny::tabPanel(
+              title = list(fontawesome::fa("right-from-bracket"), "Output"),
+              shiny::br(),
+              shiny::uiOutput(outputId = "videooutput"),
+              shiny::br(),
+              shiny::downloadButton(
+                outputId = "downloadMP4",
+                label = "Video",
+                class = "btn-primary",
+                style = "width:100%; border-color:white; border-radius: 10px;",
+              ),
+              align = "center"
+            ),
+            shiny::tabPanel(
+              title = list(fontawesome::fa("chart-line"), "Plots"),
+              shiny::br(),
+              shiny::plotOutput("plotResults",  width = "100%"),
+              shiny::br(),
+              shiny::fluidPage(
+                shiny::fluidRow(
+                  shiny::column(
+                    4,
+                    shiny::downloadButton(
+                      outputId = "downloadPATH",
+                      label = "Trajectory data",
+                      class = "btn-primary",
+                      style = "width:100%; border-color:white; border-radius: 10px;",
+                    ),
+                  ),
+                  shiny::column(
+                    4,
+                    shiny::downloadButton(
+                      outputId = "downloadDISPL",
+                      label = "Displacement data",
+                      class = "btn-primary",
+                      style = "width:100%; border-color:white; border-radius: 10px;",
+                    ),
+                  ),
+                  shiny::column(
+                    4,
+                    shiny::downloadButton(
+                      outputId = "downloadCC",
+                      label = "Cross-correlation data",
+                      class = "btn-primary",
+                      style = "width:100%; border-color:white; border-radius: 10px;",
+                    ),
+                    align = "center"
+                  ),
+                ),
+              ),
+              align = "center"
+            ),
+            shiny::tabPanel(
+              title = list(fontawesome::fa("table"), "Tables"),
+              shiny::br(),
+              DT::dataTableOutput("tableResults", width = "100%"),
+              align = "center"
+            ),
+          ),
+        ),
+        shiny::tabPanel(
+          title = list(fontawesome::fa("circle-info"), "Instructions"),
           shiny::br(),
           shiny::HTML(
             "<p>1. Upload a video file (.mp4) with the <b>Upload video</b>.</p>
             <p>2. If necessary, edit the video by subsetting the uploaded video using <b>Edit</b>.</p>
-            <p>3. Click <b>Select ROI</b> to set the region of interest (ROI) for analysis. Click on the screen to mark the center of the ROI.</p>
-            <p>4. Adjust the parameters for analysis:</p>
+            <p>3. Click <b>Track</b> to configure the analysis.</p>
+            <p>4. Set up the parameters for analysis:</p>
             <p>   - <i>Object size</i>: '1' to '201' (odd numbers only).</p>
             <p>   - <i>Overlap</i>: '0' to '100%'.</p>
             <p>   - <i>Filter type</i>: 'none', 'gaussian', 'median'.</p>
             <p>   - <i>Filter size</i>: '1' to '11' (odd numbers only).</p>
             <p>   - <i>Jump</i>: '1' to '5' frames.</p>
-            <p>5. Click <b>Analyze</b>. Wait until the red progress bar on the top stops blinking.</p>
-            <p>6. Check <b>Output</b> tab to visualize the processed video.</p>
-            <p>7. Check <b>Plots</b> and <b>Table</b> tabs for the results.</p>
+            <p>5. Set the region of interest (<b>ROI</b>) for analysis. Click on the screen to mark the center of the ROI.</p>
+            <p>6. Click <b>Analyze</b>. Wait until the red progress bar on the top stops blinking.</p>
+            <p>7. Check <b>Output</b> tab to visualize the processed video.</p>
+            <p>8. Check <b>Plots</b> and <b>Table</b> tabs for the results.</p>
             <p>8. Click on <b>Downloads</b> to download time series for:</p>
-            <p>   - <i>Output video</i> (.mp4)
-            <p>   - <i>Object trajectory</i> (.csv)
-            <p>   - <i>Object displacement</i> (.csv)
-            <p>   - </i>Maximum cross-correlation</i> (.csv)
             <p>9. Click <b>Reset</b> icon for running new analisys.",
           ),
         ),
         shiny::tabPanel(
-          title = "About",
+          title = list(fontawesome::fa("id-card"), "About"),
           shiny::br(),
           shiny::HTML("<b>Author</b>"),
           shiny::br(),
@@ -310,148 +386,7 @@ ui <- shiny::fluidPage(
           shiny::br(),
         ),
       ),
-    ),
-    
-    # Main panel for displaying outputs ----
-    shiny::mainPanel(
-      shiny::tabsetPanel(
-        id = "tabResults",
-        type = "tabs",
-        shiny::tabPanel(
-          title = "Input",
-          shiny::tabsetPanel(
-            id = "tabInput",
-            type = "tabs",
-            shiny::tabPanel(
-              title = "Video",
-              shiny::br(),
-              shiny::uiOutput(outputId = "videoraw"),
-              align = "center"
-            ),
-            shiny::tabPanel(
-              title = "Edit",
-              shiny::br(),
-              shiny::uiOutput(outputId = "videoedit"),
-              shiny::br(),
-              shiny::sliderInput(
-                inputId = "framesEdit",
-                label = "Frames",
-                min = 1,
-                max = 100,
-                value = c(1, 100),
-                step = 1,
-                ticks = FALSE,
-                animate = TRUE,
-                width = "100%"
-              ),
-              align = "center"
-            ),
-          ),
-        ),
-        shiny::tabPanel(
-          title = "Measure",
-          shiny::tabsetPanel(
-            id = "tabMeasure",
-            type = "tabs",
-            shiny::tabPanel(
-              title = "Frame",
-              shiny::br(),
-              shiny::plotOutput(
-                outputId = "plotMeasure",
-                width = "auto",
-                click = "img_click"
-              ),
-              shiny::br(),
-              shiny::sliderInput(
-                inputId = "imgEdit",
-                label = "Frames",
-                min = 1,
-                max = 100,
-                value = 1,
-                step = 1,
-                ticks = FALSE,
-                animate = TRUE,
-                width = "100%"
-              ),
-              align = "center"
-            ),
-          ),
-        ),
-        shiny::tabPanel(
-          title = "Track",
-          shiny::tabsetPanel(
-            id = "tabTrack",
-            type = "tabs",
-            shiny::tabPanel(
-              title = "ROI",
-              shiny::br(),
-              shiny::plotOutput(
-                outputId = "plotROI",
-                width = "auto",
-                click = "roi_click"
-              ),
-              align = "center"
-            ),
-            shiny::tabPanel(
-              title = "Output",
-              shiny::br(),
-              shiny::uiOutput(outputId = "videooutput"),
-              align = "center"
-            ),
-            shiny::tabPanel(
-              title = "Plots",
-              shiny::br(),
-              shiny::plotOutput("plotResults",  width = "100%"),
-              align = "center"
-            ),
-            shiny::tabPanel(
-              title = "Table",
-              shiny::br(),
-              DT::dataTableOutput("tableResults", width = "100%"),
-              align = "center"
-            ),
-            shiny::tabPanel(
-              title = "Download",
-              shiny::br(),
-              shiny::br(),
-              shiny::downloadButton(
-                outputId = "downloadMP4",
-                label = "Video (.mp4)",
-                class = "btn-primary",
-                style = "width:100%; border-color:white; border-radius: 10px;",
-              ),
-              shiny::br(),
-              shiny::br(),
-              shiny::downloadButton(
-                outputId = "downloadPATH",
-                label = "Trajectory data (.csv)",
-                class = "btn-primary",
-                style = "width:100%; border-color:white; border-radius: 10px;",
-              ),
-              shiny::br(),
-              shiny::br(),
-              shiny::downloadButton(
-                outputId = "downloadDISPL",
-                label = "Displacement data (.csv)",
-                class = "btn-primary",
-                style = "width:100%; border-color:white; border-radius: 10px;",
-              ),
-              shiny::br(),
-              shiny::br(),
-              shiny::downloadButton(
-                outputId = "downloadCC",
-                label = "Cross-correlation data (.csv)",
-                class = "btn-primary",
-                style = "width:100%; border-color:white; border-radius: 10px;",
-              ),
-              align = "center"
-            )
-          )
-        )
-      )
     )
-  )
-)
 
 # Define server script
 server <- function(input, output, session) {
@@ -472,46 +407,16 @@ server <- function(input, output, session) {
     meas_coords$xy[2, ] <- c(input$img_click$x, input$img_click$y)
   })
   
-  # change to tab Edit under event ---------------------------------------------------------
-  shiny::observeEvent(input[["buttEdit"]], {
-    shiny::updateTabsetPanel(inputId = "tabResults",
-                             selected = "Edit")
-  })
-  
   # change to tab Input under event ---------------------------------------------------------
   shiny::observeEvent(input[["InputFile"]], {
     shiny::updateTabsetPanel(inputId = "tabResults",
                              selected = "Input")
   })
   
-  # change to tab ROI under event ---------------------------------------------------------
-  shiny::observeEvent(input[["buttROI"]], {
-    shiny::updateTabsetPanel(inputId = "tabResults",
-                             selected = "ROI")
-  })
-  
   # change to tab Output under event ---------------------------------------------------------
   shiny::observeEvent(input[["buttAnalyze"]], {
     shiny::updateTabsetPanel(inputId = "tabResults",
                              selected = "Output")
-  })
-  
-  # change to tab Plots under event ---------------------------------------------------------
-  shiny::observeEvent(input[["buttPlots"]], {
-    shiny::updateTabsetPanel(inputId = "tabResults",
-                             selected = "Plots")
-  })
-  
-  # change to tab Table under event ---------------------------------------------------------
-  shiny::observeEvent(input[["buttTable"]], {
-    shiny::updateTabsetPanel(inputId = "tabResults",
-                             selected = "Table")
-  })
-  
-  # change to tab Downloads under event ---------------------------------------------------------
-  shiny::observeEvent(input[["buttDowns"]], {
-    shiny::updateTabsetPanel(inputId = "tabResults",
-                             selected = "Download")
   })
   
   # enable/disable filter
@@ -581,8 +486,8 @@ server <- function(input, output, session) {
     
     # show input video
     tags$video(
-      width = "80%",
-      height = "80%",
+      width = "70%",
+      height = "70%",
       controls = "",
       tags$source(src = "rawvideo.mp4", type = "video/mp4")
     )
@@ -627,8 +532,8 @@ server <- function(input, output, session) {
     
     # show video
     tags$video(
-      width = "80%",
-      height = "80%",
+      width = "70%",
+      height = "70%",
       controls = "",
       tags$source(src = "editedvideo.mp4", type = "video/mp4")
     )
@@ -869,8 +774,8 @@ server <- function(input, output, session) {
     
     # show video
     tags$video(
-      width = "80%",
-      height = "80%",
+      width = "70%",
+      height = "70%",
       controls = "",
       tags$source(src = "outputvideo.mp4", type = "video/mp4")
     )
@@ -1013,7 +918,8 @@ server <- function(input, output, session) {
         ),
         fixedColumns = TRUE,
         pageLength = length(labels),
-        autoWidth = TRUE
+        autoWidth = TRUE,
+        columnDefs = list(list(className = 'dt-center', targets = "_all"))
       )
     )
   })
