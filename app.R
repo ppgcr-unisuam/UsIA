@@ -319,91 +319,134 @@ ui <- shiny::fluidPage(
         type = "tabs",
         shiny::tabPanel(
           title = "Input",
-          shiny::br(),
-          shiny::uiOutput(outputId = "videoraw"),
-          align = "center"
+          shiny::tabsetPanel(
+            id = "tabInput",
+            type = "tabs",
+            shiny::tabPanel(
+              title = "Video",
+              shiny::br(),
+              shiny::uiOutput(outputId = "videoraw"),
+              align = "center"
+            ),
+            shiny::tabPanel(
+              title = "Edit",
+              shiny::br(),
+              shiny::uiOutput(outputId = "videoedit"),
+              shiny::br(),
+              shiny::sliderInput(
+                inputId = "framesEdit",
+                label = "Frames",
+                min = 1,
+                max = 100,
+                value = c(1, 100),
+                step = 1,
+                ticks = FALSE,
+                animate = TRUE,
+                width = "100%"
+              ),
+              align = "center"
+            ),
+          ),
         ),
         shiny::tabPanel(
-          title = "Edit",
-          shiny::br(),
-          shiny::uiOutput(outputId = "videoedit"),
-          shiny::br(),
-          shiny::sliderInput(
-            inputId = "framesEdit",
-            label = "Frames",
-            min = 1,
-            max = 100,
-            value = c(1, 100),
-            step = 1,
-            ticks = FALSE,
-            animate = TRUE,
-            width = "100%"
+          title = "Measure",
+          shiny::tabsetPanel(
+            id = "tabMeasure",
+            type = "tabs",
+            shiny::tabPanel(
+              title = "Frame",
+              shiny::br(),
+              shiny::plotOutput(
+                outputId = "plotMeasure",
+                width = "auto",
+                click = "img_click"
+              ),
+              shiny::br(),
+              shiny::sliderInput(
+                inputId = "imgEdit",
+                label = "Frames",
+                min = 1,
+                max = 100,
+                value = 1,
+                step = 1,
+                ticks = FALSE,
+                animate = TRUE,
+                width = "100%"
+              ),
+              align = "center"
+            ),
           ),
-          align = "center"
         ),
         shiny::tabPanel(
-          title = "ROI",
-          shiny::br(),
-          shiny::plotOutput(
-            outputId = "plotROI",
-            width = "auto",
-            click = "plot_click"
-          ),
-          align = "center"
-        ),
-        shiny::tabPanel(
-          title = "Output",
-          shiny::br(),
-          shiny::uiOutput(outputId = "videooutput"),
-          align = "center"
-        ),
-        shiny::tabPanel(
-          title = "Plots",
-          shiny::br(),
-          shiny::plotOutput("plotResults",  width = "100%"),
-          align = "center"
-        ),
-        shiny::tabPanel(
-          title = "Table",
-          shiny::br(),
-          DT::dataTableOutput("tableResults", width = "100%"),
-          align = "center"
-        ),
-        shiny::tabPanel(
-          title = "Download",
-          shiny::br(),
-          shiny::br(),
-          shiny::downloadButton(
-            outputId = "downloadMP4",
-            label = "Video (.mp4)",
-            class = "btn-primary",
-            style = "width:100%; border-color:white; border-radius: 10px;",
-          ),
-          shiny::br(),
-          shiny::br(),
-          shiny::downloadButton(
-            outputId = "downloadPATH",
-            label = "Trajectory data (.csv)",
-            class = "btn-primary",
-            style = "width:100%; border-color:white; border-radius: 10px;",
-          ),
-          shiny::br(),
-          shiny::br(),
-          shiny::downloadButton(
-            outputId = "downloadDISPL",
-            label = "Displacement data (.csv)",
-            class = "btn-primary",
-            style = "width:100%; border-color:white; border-radius: 10px;",
-          ),
-          shiny::br(),
-          shiny::br(),
-          shiny::downloadButton(
-            outputId = "downloadCC",
-            label = "Cross-correlation data (.csv)",
-            class = "btn-primary",
-            style = "width:100%; border-color:white; border-radius: 10px;",
-          ),
-          align = "center"
+          title = "Track",
+          shiny::tabsetPanel(
+            id = "tabTrack",
+            type = "tabs",
+            shiny::tabPanel(
+              title = "ROI",
+              shiny::br(),
+              shiny::plotOutput(
+                outputId = "plotROI",
+                width = "auto",
+                click = "roi_click"
+              ),
+              align = "center"
+            ),
+            shiny::tabPanel(
+              title = "Output",
+              shiny::br(),
+              shiny::uiOutput(outputId = "videooutput"),
+              align = "center"
+            ),
+            shiny::tabPanel(
+              title = "Plots",
+              shiny::br(),
+              shiny::plotOutput("plotResults",  width = "100%"),
+              align = "center"
+            ),
+            shiny::tabPanel(
+              title = "Table",
+              shiny::br(),
+              DT::dataTableOutput("tableResults", width = "100%"),
+              align = "center"
+            ),
+            shiny::tabPanel(
+              title = "Download",
+              shiny::br(),
+              shiny::br(),
+              shiny::downloadButton(
+                outputId = "downloadMP4",
+                label = "Video (.mp4)",
+                class = "btn-primary",
+                style = "width:100%; border-color:white; border-radius: 10px;",
+              ),
+              shiny::br(),
+              shiny::br(),
+              shiny::downloadButton(
+                outputId = "downloadPATH",
+                label = "Trajectory data (.csv)",
+                class = "btn-primary",
+                style = "width:100%; border-color:white; border-radius: 10px;",
+              ),
+              shiny::br(),
+              shiny::br(),
+              shiny::downloadButton(
+                outputId = "downloadDISPL",
+                label = "Displacement data (.csv)",
+                class = "btn-primary",
+                style = "width:100%; border-color:white; border-radius: 10px;",
+              ),
+              shiny::br(),
+              shiny::br(),
+              shiny::downloadButton(
+                outputId = "downloadCC",
+                label = "Cross-correlation data (.csv)",
+                class = "btn-primary",
+                style = "width:100%; border-color:white; border-radius: 10px;",
+              ),
+              align = "center"
+            )
+          )
         )
       )
     )
@@ -414,12 +457,19 @@ ui <- shiny::fluidPage(
 server <- function(input, output, session) {
   
   # store plot click coords
-  source_coords <-
+  roi_coords <-
+    shiny::reactiveValues(xy = data.frame(x = c(1, 1),  y = c(1, 1)))
+  
+  meas_coords <-
     shiny::reactiveValues(xy = data.frame(x = c(1, 1),  y = c(1, 1)))
   
   # observe plot clic event ---------------------------------------------------------
-  shiny::observeEvent(input$plot_click, {
-    source_coords$xy[2, ] <- c(input$plot_click$x, input$plot_click$y)
+  shiny::observeEvent(input$roi_click, {
+    roi_coords$xy[2, ] <- c(input$roi_click$x, input$roi_click$y)
+  })
+  
+  shiny::observeEvent(input$img_click, {
+    meas_coords$xy[2, ] <- c(input$img_click$x, input$img_click$y)
   })
   
   # change to tab Edit under event ---------------------------------------------------------
@@ -484,7 +534,10 @@ server <- function(input, output, session) {
     info <- av::av_media_info(Video())
     
     # center ROI for the first time
-    source_coords$xy[2, ] <- c(info$video$width / 2, info$video$height / 2)
+    roi_coords$xy[2, ] <- c(info$video$width / 2, info$video$height / 2)
+    
+    # center ROI for the first time
+    roi_coords$xy[2, ] <- c(info$video$width / 2, info$video$height / 2)
     
     # copy and rename file
     file.copy(from = Video(),
@@ -516,10 +569,20 @@ server <- function(input, output, session) {
       ))
     )
     
+    # update max value of slider under event
+    shiny::updateSliderInput(
+      inputId = "imgEdit",
+      min = 1,
+      value = 1,
+      max = length(list.files(
+        file.path(dir.name, "0 raw"), pattern = ".png"
+      ))
+    )
+    
     # show input video
     tags$video(
-      width = "90%",
-      height = "90%",
+      width = "80%",
+      height = "80%",
       controls = "",
       tags$source(src = "rawvideo.mp4", type = "video/mp4")
     )
@@ -528,6 +591,7 @@ server <- function(input, output, session) {
   # edit mp4 video using the sliderEdit input ---------------------------------------------------------
   output[["videoedit"]] <- shiny::renderUI({
     shiny::req(Video())
+    req(input$framesEdit)
     # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
     
@@ -563,13 +627,90 @@ server <- function(input, output, session) {
     
     # show video
     tags$video(
-      width = "90%",
-      height = "90%",
+      width = "80%",
+      height = "80%",
       controls = "",
       tags$source(src = "editedvideo.mp4", type = "video/mp4")
     )
   })
   
+  # plot single frame of video imgEdit ---------------------------------------------------------
+  output[["plotMeasure"]] <- shiny::renderPlot({
+    shiny::req(Video())
+    req(input$imgEdit)
+    # Get video info such as width, height, format, duration and framerate
+    info <- av::av_media_info(Video())
+    
+    # show 1st frame
+    img <-
+      magick::image_read(
+        list.files(
+          path = file.path(dir.name, "1 edited"),
+          full.names = TRUE,
+          pattern = "png")[input$imgEdit]
+      )
+
+    # color palette (grayscale)
+    pal <- grDevices::gray(seq(
+      from = 0,
+      to = 1,
+      length.out = 256
+    ), alpha = NULL)
+    par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
+    plot(
+      img,
+      xlim = c(0, info$video$width),
+      ylim = c(0, info$video$height),
+      asp = 1,
+      col = pal
+    )
+    # custom functions
+    round_2_odd <- function(x) {
+      2 * floor(x / 2) + 1
+    }
+    
+    # draw object rectangle
+    rect(
+      xleft = meas_coords$xy[2, 1] - floor(input$KernelSize / 2),
+      ybottom = meas_coords$xy[2, 2] - floor(input$KernelSize / 2),
+      xright = meas_coords$xy[2, 1] + floor(input$KernelSize / 2),
+      ytop = meas_coords$xy[2, 2] + floor(input$KernelSize / 2),
+      col = "transparent",
+      border = "red",
+      lty = "solid",
+      lwd = 2
+    )
+    
+    roi <-
+      round_2_odd(input$KernelSize * (1 + as.numeric(input$Overlap) / 100)) # odd numbers only
+    # draw ROI rectangle
+    rect(
+      xleft = meas_coords$xy[2, 1] - floor(roi / 2),
+      ybottom = meas_coords$xy[2, 2] - floor(roi / 2),
+      xright = meas_coords$xy[2, 1] + floor(roi / 2),
+      ytop = meas_coords$xy[2, 2] + floor(roi / 2),
+      col = "transparent",
+      border = "yellow",
+      lty = "solid",
+      lwd = 2
+    )
+    # show coordinates of ROI
+    text(
+      x = meas_coords$xy[2, 1],
+      y = meas_coords$xy[2, 2],
+      paste0(
+        "x=",
+        round(meas_coords$xy[2, 1], 0),
+        "\n",
+        "y=",
+        round(meas_coords$xy[2, 2], 0)
+      ),
+      col = "red"
+    )
+  }, height = function() {
+    (session$clientData$output_plotMeasure_width) * (0.585)
+  })
+
   # show PNG file of 1st frame ---------------------------------------------------------
   output[["plotROI"]] <- shiny::renderPlot({
     shiny::req(Video())
@@ -606,10 +747,10 @@ server <- function(input, output, session) {
     
     # draw object rectangle
     rect(
-      xleft = source_coords$xy[2, 1] - floor(input$KernelSize / 2),
-      ybottom = source_coords$xy[2, 2] - floor(input$KernelSize / 2),
-      xright = source_coords$xy[2, 1] + floor(input$KernelSize / 2),
-      ytop = source_coords$xy[2, 2] + floor(input$KernelSize / 2),
+      xleft = roi_coords$xy[2, 1] - floor(input$KernelSize / 2),
+      ybottom = roi_coords$xy[2, 2] - floor(input$KernelSize / 2),
+      xright = roi_coords$xy[2, 1] + floor(input$KernelSize / 2),
+      ytop = roi_coords$xy[2, 2] + floor(input$KernelSize / 2),
       col = "transparent",
       border = "red",
       lty = "solid",
@@ -620,10 +761,10 @@ server <- function(input, output, session) {
       round_2_odd(input$KernelSize * (1 + as.numeric(input$Overlap) / 100)) # odd numbers only
     # draw ROI rectangle
     rect(
-      xleft = source_coords$xy[2, 1] - floor(roi / 2),
-      ybottom = source_coords$xy[2, 2] - floor(roi / 2),
-      xright = source_coords$xy[2, 1] + floor(roi / 2),
-      ytop = source_coords$xy[2, 2] + floor(roi / 2),
+      xleft = roi_coords$xy[2, 1] - floor(roi / 2),
+      ybottom = roi_coords$xy[2, 2] - floor(roi / 2),
+      xright = roi_coords$xy[2, 1] + floor(roi / 2),
+      ytop = roi_coords$xy[2, 2] + floor(roi / 2),
       col = "transparent",
       border = "yellow",
       lty = "solid",
@@ -631,19 +772,19 @@ server <- function(input, output, session) {
     )
     # show coordinates of ROI
     text(
-      x = source_coords$xy[2, 1],
-      y = source_coords$xy[2, 2],
+      x = roi_coords$xy[2, 1],
+      y = roi_coords$xy[2, 2],
       paste0(
         "x=",
-        round(source_coords$xy[2, 1], 0),
+        round(roi_coords$xy[2, 1], 0),
         "\n",
         "y=",
-        round(source_coords$xy[2, 2], 0)
+        round(roi_coords$xy[2, 2], 0)
       ),
       col = "red"
     )
   }, height = function() {
-    (session$clientData$output_plotROI_width) * (0.6585)
+    (session$clientData$output_plotROI_width) * (0.585)
   })
   
   # process, play and export video ---------------------------------------------------------
@@ -655,7 +796,7 @@ server <- function(input, output, session) {
     # Capture the result of us_track function call
     us_track(
       center.ini <-
-        list(x = source_coords$xy[2, 1], y = source_coords$xy[2, 2]),
+        list(x = roi_coords$xy[2, 1], y = roi_coords$xy[2, 2]),
       inputfile = file.path(dir.name, "editedvideo.mp4"),
       filtertype = input$FilterType,
       filtersize = input$FilterSize,
@@ -728,8 +869,8 @@ server <- function(input, output, session) {
     
     # show video
     tags$video(
-      width = "90%",
-      height = "90%",
+      width = "80%",
+      height = "80%",
       controls = "",
       tags$source(src = "outputvideo.mp4", type = "video/mp4")
     )
@@ -746,8 +887,8 @@ server <- function(input, output, session) {
         "Frames (n)" = info$video$frames,
         "Start - End (frames)" = paste0(input$framesEdit[1], " - ", input$framesEdit[2]),
         "Video size (px)" = paste0(info$video$width, " x ", info$video$height),
-        "X0 (px)" = round(source_coords$xy[2, 1], 0),
-        "Y0 (px)" = round(source_coords$xy[2, 2], 0),
+        "X0 (px)" = round(roi_coords$xy[2, 1], 0),
+        "Y0 (px)" = round(roi_coords$xy[2, 2], 0),
         "Object size (px)" = input$KernelSize,
         "Filter type" = input$FilterType,
         "Filter size (px)" = input$FilterSize,
@@ -786,8 +927,8 @@ server <- function(input, output, session) {
         "Frames (n)" = info$video$frames,
         "Start - End (frames)" = paste0(input$framesEdit[1], " - ", input$framesEdit[2]),
         "Video size (px)" = paste0(info$video$width, " x ", info$video$height),
-        "X0 (px)" = round(source_coords$xy[2, 1], 0),
-        "Y0 (px)" = round(source_coords$xy[2, 2], 0),
+        "X0 (px)" = round(roi_coords$xy[2, 1], 0),
+        "Y0 (px)" = round(roi_coords$xy[2, 2], 0),
         "Object size (px)" = input$KernelSize,
         "Filter type" = input$FilterType,
         "Filter size (px)" = input$FilterSize,
@@ -802,6 +943,27 @@ server <- function(input, output, session) {
         "Cross-correlation, min" = NA
       )
     })
+  
+  # plot results of th CSV files ---------------------------------------------------------
+  output[["plotResults"]] <- shiny::renderImage({
+    shiny::req(Video())
+    shiny::req(file.path(dir.name, "outputvideo.mp4"))
+    # Get video info such as width, height, format, duration and framerate
+    info <-
+      av::av_media_info(file.path(dir.name, "outputvideo.mp4"))
+    
+    source("f_plot.R", local = TRUE)
+    img <- htmltools::capturePlot({
+      plot.trajectory(res.dir = file.path(dir.name, "CSV"),
+                      info = info)
+    }, height = "500", width = "500")
+    list(
+      src = img,
+      height = "auto",
+      width = "auto",
+      contentType = "image/png"
+    )
+  }, deleteFile = TRUE)
   
   # show datatable of results ---------------------------------------------------------
   output[["tableResults"]] <- DT::renderDataTable({
@@ -903,26 +1065,6 @@ server <- function(input, output, session) {
                   to = file)
       }
     )
-  
-  # plot results of th CSV files ---------------------------------------------------------
-  output[["plotResults"]] <- shiny::renderImage({
-    shiny::req(file.path(dir.name, "outputvideo.mp4"))
-    # Get video info such as width, height, format, duration and framerate
-    info <-
-      av::av_media_info(file.path(dir.name, "outputvideo.mp4"))
-    
-    source("f_plot.R", local = TRUE)
-    img <- htmltools::capturePlot({
-      plot.trajectory(res.dir = file.path(dir.name, "CSV"),
-                      info = info)
-    }, height = "500", width = "500")
-    list(
-      src = img,
-      height = "auto",
-      width = "auto",
-      contentType = "image/png"
-    )
-  }, deleteFile = TRUE)
   
   # reset button ---------------------------------------------------------
   shinyjs::onclick("refresh", {
