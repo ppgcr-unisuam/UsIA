@@ -59,16 +59,17 @@ ui <- shiny::fluidPage(
   shiny::titlePanel(
     shiny::fluidRow(
       shiny::column(
-        9,
+        8,
         list(
           fontawesome::fa("wifi"),
           shiny::HTML("<strong>UsIA</strong>"),
-          "| Ultrasound Image Analysis"
+          shiny::br(),
+          "Ultrasound Image Analysis"
         ),
         style = "text-align:left;"
       ),
       shiny::column(
-        3,
+        4,
         tags$a(
           id = "refresh",
           class = "btn btn-primary",
@@ -87,29 +88,6 @@ ui <- shiny::fluidPage(
   tags$head(tags$style(
     shiny::HTML(".btn-file {background-color: #2C3E50;}")
   )),
-  
-  # control labels to the left
-  tags$style(
-    shiny::HTML(
-      "
-    .label-left .form-group {
-      display: flex;              /* Use flexbox for positioning children */
-      flex-direction: row;        /* Place children on a row (default) */
-      width: 90%;                /* Set width for container */
-      max-width: 90%;
-    }
-    .label-left label {
-      margin-right: 2rem;         /* Add spacing between label and slider */
-      align-self: center;         /* Vertical align in center of row */
-      text-align: right;
-      flex-basis: 20%;          /* Target width for label */
-    }
-    .label-left .irs {
-      flex-basis: 80%;          /* Target width for slider */
-    }
-    "
-    )
-  ),
   
     # Main panel for displaying outputs ----
       shiny::tabsetPanel(
@@ -138,11 +116,9 @@ ui <- shiny::fluidPage(
             shiny::tabPanel(
               title = list(fontawesome::fa("edit"), "Edit"),
               shiny::br(),
-              shiny::uiOutput(outputId = "videoedit"),
-              shiny::br(),
               shiny::sliderInput(
                 inputId = "framesEdit",
-                label = "Frames",
+                label = NULL,
                 min = 1,
                 max = 100,
                 value = c(1, 100),
@@ -151,6 +127,7 @@ ui <- shiny::fluidPage(
                 animate = TRUE,
                 width = "100%"
               ),
+              shiny::uiOutput(outputId = "videoedit"),
               align = "center"
             ),
           ),
@@ -164,15 +141,9 @@ ui <- shiny::fluidPage(
             shiny::tabPanel(
               title = list(fontawesome::fa("image"), "Frame"),
               shiny::br(),
-              shiny::plotOutput(
-                outputId = "plotMeasure",
-                width = "auto",
-                click = "img_click"
-              ),
-              shiny::br(),
               shiny::sliderInput(
                 inputId = "imgEdit",
-                label = "Frames",
+                label = NULL,
                 min = 1,
                 max = 100,
                 value = 1,
@@ -180,6 +151,11 @@ ui <- shiny::fluidPage(
                 ticks = FALSE,
                 animate = TRUE,
                 width = "100%"
+              ),
+              shiny::plotOutput(
+                outputId = "plotMeasure",
+                width = "auto",
+                click = "img_click"
               ),
               align = "center"
             ),
@@ -246,25 +222,24 @@ ui <- shiny::fluidPage(
             shiny::tabPanel(
               title = list(fontawesome::fa("crop"), "ROI"),
               shiny::br(),
+              shiny::actionButton(
+                inputId = "buttAnalyze",
+                label = "Analyze",
+                class = "btn-primary",
+                style = "width:100%; border-color:white; border-radius: 10px",
+                icon("play")
+              ),
+              shiny::br(),
+              shiny::br(),
               shiny::plotOutput(
                 outputId = "plotROI",
                 width = "auto",
                 click = "roi_click"
               ),
-              shiny::br(),
-              shiny::actionButton(
-                inputId = "buttAnalyze",
-                label = "Analyze",
-                class = "btn-primary",
-                style = "width:100%; border-color:white; border-radius: 10px; font-size:150%;",
-                icon("play")
-              ),
               align = "center"
             ),
             shiny::tabPanel(
               title = list(fontawesome::fa("right-from-bracket"), "Output"),
-              shiny::br(),
-              shiny::uiOutput(outputId = "videooutput"),
               shiny::br(),
               shiny::downloadButton(
                 outputId = "downloadMP4",
@@ -272,12 +247,13 @@ ui <- shiny::fluidPage(
                 class = "btn-primary",
                 style = "width:100%; border-color:white; border-radius: 10px;",
               ),
+              shiny::br(),
+              shiny::br(),
+              shiny::uiOutput(outputId = "videooutput"),
               align = "center"
             ),
             shiny::tabPanel(
               title = list(fontawesome::fa("chart-line"), "Plots"),
-              shiny::br(),
-              shiny::plotOutput("plotResults",  width = "100%"),
               shiny::br(),
               shiny::fluidPage(
                 shiny::fluidRow(
@@ -311,6 +287,9 @@ ui <- shiny::fluidPage(
                   ),
                 ),
               ),
+              shiny::br(),
+              shiny::br(),
+              shiny::plotOutput("plotResults",  width = "100%"),
               align = "center"
             ),
             shiny::tabPanel(
@@ -322,7 +301,7 @@ ui <- shiny::fluidPage(
           ),
         ),
         shiny::tabPanel(
-          title = list(fontawesome::fa("circle-info"), "Instructions"),
+          title = list(fontawesome::fa("circle-info"), "How to"),
           shiny::br(),
           shiny::HTML(
             "<p>1. Upload a video file (.mp4) with the <b>Upload video</b>.</p>
@@ -343,7 +322,7 @@ ui <- shiny::fluidPage(
           ),
         ),
         shiny::tabPanel(
-          title = list(fontawesome::fa("id-card"), "About"),
+          title = list(fontawesome::fa("id-card"), "Info"),
           shiny::br(),
           shiny::HTML("<b>Author</b>"),
           shiny::br(),
@@ -486,8 +465,8 @@ server <- function(input, output, session) {
     
     # show input video
     tags$video(
-      width = "70%",
-      height = "70%",
+      width = "90%",
+      height = "90%",
       controls = "",
       tags$source(src = "rawvideo.mp4", type = "video/mp4")
     )
@@ -532,8 +511,8 @@ server <- function(input, output, session) {
     
     # show video
     tags$video(
-      width = "70%",
-      height = "70%",
+      width = "90%",
+      height = "90%",
       controls = "",
       tags$source(src = "editedvideo.mp4", type = "video/mp4")
     )
@@ -613,7 +592,7 @@ server <- function(input, output, session) {
       col = "red"
     )
   }, height = function() {
-    (session$clientData$output_plotMeasure_width) * (0.585)
+    (session$clientData$output_plotMeasure_width) * (0.6584)
   })
 
   # show PNG file of 1st frame ---------------------------------------------------------
@@ -689,7 +668,7 @@ server <- function(input, output, session) {
       col = "red"
     )
   }, height = function() {
-    (session$clientData$output_plotROI_width) * (0.585)
+    (session$clientData$output_plotROI_width) * (0.6584)
   })
   
   # process, play and export video ---------------------------------------------------------
@@ -774,8 +753,8 @@ server <- function(input, output, session) {
     
     # show video
     tags$video(
-      width = "70%",
-      height = "70%",
+      width = "90%",
+      height = "90%",
       controls = "",
       tags$source(src = "outputvideo.mp4", type = "video/mp4")
     )
@@ -974,6 +953,11 @@ server <- function(input, output, session) {
   
   # reset button ---------------------------------------------------------
   shinyjs::onclick("refresh", {
+    
+    # clean InputFile
+    shinyjs::reset("InputFile")
+    
+    # delete files
     unlink(
       list.files(
         path = dir.name,
