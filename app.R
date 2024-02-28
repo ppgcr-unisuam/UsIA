@@ -84,6 +84,12 @@ ui <- shiny::fluidPage(
     windowTitle = "UsIA | Ultrasound Image Analysis"
   ),
   
+  shiny::HTML(
+    "<a href=\"https://doi.org/10.5281/zenodo.10439718\" style=\"vertical-align:middle;\"><img src=\"https://zenodo.org/badge/DOI/10.5281/zenodo.10439718.svg\" alt=\"DOI\"  style=\"vertical-align:top;\"></a>"
+  ),
+  shiny::br(),
+  shiny::br(),
+  
   # change color of fileInput button
   tags$head(tags$style(
     shiny::HTML(".btn-file {background-color: #2C3E50;}")
@@ -301,7 +307,7 @@ ui <- shiny::fluidPage(
           ),
         ),
         shiny::tabPanel(
-          title = list(fontawesome::fa("circle-info"), "How to"),
+          title = list(fontawesome::fa("circle-info")),
           shiny::br(),
           shiny::HTML(
             "<p>1. Upload a video file (.mp4) with the <b>Upload video</b>.</p>
@@ -321,51 +327,36 @@ ui <- shiny::fluidPage(
             <p>9. Click <b>Reset</b> icon for running new analisys.",
           ),
         ),
-        shiny::tabPanel(
-          title = list(fontawesome::fa("id-card"), "Info"),
-          shiny::br(),
-          shiny::HTML("<b>Author</b>"),
-          shiny::br(),
-          shiny::HTML(
-            "<a href=\"mailto:arthurde@souunisuam.com.br\">Arthur Ferreira, DSc</a>"
-          ),
-          shiny::br(),
-          shiny::br(),
-          shiny::HTML("<b>Contributors</b>"),
-          shiny::br(),
-          shiny::HTML(
-            "<a href=\"mailto:gustavo.telles@souunisuam.com.br\">Gustavo Telles, MSc</a>; <a href=\"mailto:jessica.rio@souunisuam.com.br\">Jessica Rio, MSc</a>; <a href=\"mailto:alicepagnez@souunisuam.com.br\"> Maria Alice Pagnez, DSc</a>; <a href=\"mailto:leandronogueira@souunisuam.com.br\">Leandro Nogueira, DSc</a>"
-          ),
-          shiny::br(),
-          shiny::br(),
-          shiny::HTML("<b>Affiliation</b>"),
-          shiny::br(),
-          shiny::HTML(
-            "<a href=\"https://www.unisuam.edu.br/programa-pos-graduacao-ciencias-da-reabilitacao\">PPGCR</a> | Programa de Pós-graduação em Ciências da Reabilitação, Centro Universitário Augusto Motta, Rio de Janeiro, RJ, Brazil"
-          ),
-          shiny::br(),
-          shiny::br(),
-          shiny::HTML("<b>License</b>"),
-          shiny::br(),
-          shiny::HTML(
-            "This work is licensed under an <a rel=\"license\" data-spdx=\"Apache-2.0\" href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache License 2.0</a>."
-          ),
-          shiny::br(),
-          shiny::br(),
-          shiny::HTML("<b>Cite as</b>"),
-          shiny::br(),
-          shiny::HTML(
-            "Ferreira, A.S. (2023). UsIA | Ultrasound Image Analysis (1.0.0). Zenodo. https://doi.org/10.5281/zenodo.10439718"
-          ),
-          shiny::br(),
-          shiny::br(),
-          shiny::HTML(
-            "<a href=\"https://doi.org/10.5281/zenodo.10439718\" style=\"vertical-align:middle;\"><img src=\"https://zenodo.org/badge/DOI/10.5281/zenodo.10439718.svg\" alt=\"DOI\"  style=\"vertical-align:top;\"></a>"
-          ),
-          shiny::br(),
-        ),
       ),
-    )
+  # draw horizontal line
+  shiny::br(),
+  shiny::tags$hr(style = "border-top: 2px solid #000000;"),
+  shiny::HTML("<b>About</b>"),
+  shiny::br(),
+  shiny::HTML("<a href=\"mailto:arthurde@souunisuam.com.br\">Arthur Ferreira, DSc</a>"),
+  shiny::HTML("<b> (Author)</b>"),
+  shiny::br(),
+  shiny::HTML(
+    "<a href=\"mailto:gustavo.telles@souunisuam.com.br\">Gustavo Telles, MSc</a>; <a href=\"mailto:jessica.rio@souunisuam.com.br\">Jessica Rio, MSc</a>; <a href=\"mailto:alicepagnez@souunisuam.com.br\"> Maria Alice Pagnez, DSc</a>; <a href=\"mailto:leandronogueira@souunisuam.com.br\">Leandro Nogueira, DSc</a>"
+  ),
+  shiny::HTML("<b> (Contributors)</b>"),
+  shiny::br(),
+  shiny::HTML(
+    "<a href=\"https://www.unisuam.edu.br/programa-pos-graduacao-ciencias-da-reabilitacao\">PPGCR</a> | Programa de Pós-graduação em Ciências da Reabilitação, Centro Universitário Augusto Motta, Rio de Janeiro, RJ, Brazil"
+  ),
+  shiny::HTML("<b> (Affiliation)</b>"),
+  shiny::br(),
+  shiny::br(),
+  shiny::HTML("<b>License</b>"),
+  shiny::HTML(
+    "This work is licensed under an <a rel=\"license\" data-spdx=\"Apache-2.0\" href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache License 2.0</a>."
+  ),
+  shiny::br(),
+  shiny::HTML("<b>Cite as</b>"),
+  shiny::HTML(
+    "Ferreira, A.S. (2023). UsIA | Ultrasound Image Analysis (1.0.0). Zenodo. https://doi.org/10.5281/zenodo.10439718"
+  ),
+)
 
 # Define server script
 server <- function(input, output, session) {
