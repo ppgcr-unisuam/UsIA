@@ -87,11 +87,9 @@ plot.trajectory <- function(res.dir, info) {
   
   # panel 2
   plot(
-    seq(1:length(shifts.all)),
-    t(shifts.all),
+    unlist(shifts.all),
     xlab = "Frame",
     ylab = "Shifts, pixels",
-    asp = 1,
     col = "blue",
     type = "b",
     lty = 1,
@@ -102,12 +100,10 @@ plot.trajectory <- function(res.dir, info) {
   
   # panel 3
   plot(
-    seq(1:length(max.crosscorrel)),
-    t(max.crosscorrel),
+    unlist(max.crosscorrel),
     xlab = "Frame",
     ylab = "Cross-correlation, a.u.",
     ylim = c(0, 1),
-    asp = 1,
     col = "blue",
     type = "b",
     lty = 1,

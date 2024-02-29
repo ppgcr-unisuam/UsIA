@@ -97,7 +97,7 @@ ui <- shiny::fluidPage(
   
     # Main panel for displaying outputs ----
       shiny::tabsetPanel(
-        id = "tabResults",
+        id = "tabs",
         type = "tabs",
         shiny::tabPanel(
           title = list(fontawesome::fa("right-to-bracket"), "Input"),
@@ -176,75 +176,85 @@ ui <- shiny::fluidPage(
             shiny::tabPanel(
               title = list(fontawesome::fa("sliders"), "Setup"),
               shiny::br(),
-                shiny::sliderInput(
-                  inputId = "KernelSize",
-                  label = "Object (px)",
-                  min = 1,
-                  max = 201,
-                  value = 50,
-                  step = 2,
-                  ticks = FALSE,
-                  width = "100%",
+              # split two columns
+              shiny::fluidRow(
+                shiny::column(
+                  6,
+                  shiny::sliderInput(
+                    inputId = "KernelSize",
+                    label = "Object (px)",
+                    min = 1,
+                    max = 201,
+                    value = 50,
+                    step = 2,
+                    ticks = FALSE,
+                    width = "100%",
+                  ),
+                  shiny::sliderInput(
+                    inputId = "Overlap",
+                    label = "ROI (%)",
+                    min = 0,
+                    max = 100,
+                    value = 50,
+                    step = 5,
+                    ticks = FALSE,
+                    width = "100%",
+                  ),
+                  shiny::radioButtons(
+                    inputId = "FilterType",
+                    label = "Filter",
+                    choices = c("none", "mean", "median"),
+                    selected = "none",
+                    inline = TRUE,
+                    width = "100%"
+                  ),
+                  shiny::sliderInput(
+                    inputId = "FilterSize",
+                    label = "Size (px)",
+                    min = 1,
+                    max = 11,
+                    value = 1,
+                    step = 2,
+                    ticks = FALSE,
+                    width = "100%",
+                  ),
+                  shiny::sliderInput(
+                    inputId = "Jump",
+                    label = "Jump (frames)",
+                    min = 0,
+                    max = 5,
+                    value = 0,
+                    ticks = FALSE,
+                    width = "100%",
+                  ),
+                  shiny::br(),
+                  shiny::actionButton(
+                    inputId = "buttAnalyze",
+                    label = "Analyze",
+                    class = "btn-primary",
+                    style = "width:100%; border-color:white; border-radius: 10px",
+                    icon("play")
+                  ),
+                  shiny::br(),
+                  align = "center"
                 ),
-                shiny::sliderInput(
-                  inputId = "Overlap",
-                  label = "ROI (%)",
-                  min = 0,
-                  max = 100,
-                  value = 50,
-                  step = 5,
-                  ticks = FALSE,
-                  width = "100%",
+                shiny::column(
+                  6,
+                  shiny::tabPanel(
+                    title = list(fontawesome::fa("crop"), "ROI"),
+                    shiny::br(),
+                    shiny::plotOutput(
+                      outputId = "plotROI",
+                      width = "auto",
+                      click = "roi_click"
+                    ),
+                    align = "center"
+                  ),
                 ),
-                shiny::radioButtons(
-                  inputId = "FilterType",
-                  label = "Filter",
-                  choices = c("none", "mean", "median"),
-                  selected = "none",
-                  inline = TRUE,
-                  width = "100%"
-                ),
-                shiny::sliderInput(
-                  inputId = "FilterSize",
-                  label = "Size (px)",
-                  min = 1,
-                  max = 11,
-                  value = 1,
-                  step = 2,
-                  ticks = FALSE,
-                  width = "100%",
-                ),
-                shiny::sliderInput(
-                  inputId = "Jump",
-                  label = "Jump (frames)",
-                  min = 0,
-                  max = 5,
-                  value = 0,
-                  ticks = FALSE,
-                  width = "100%",
               ),
-              align = "center"
             ),
             shiny::tabPanel(
-              title = list(fontawesome::fa("crop"), "ROI"),
-              shiny::br(),
-              shiny::actionButton(
-                inputId = "buttAnalyze",
-                label = "Analyze",
-                class = "btn-primary",
-                style = "width:100%; border-color:white; border-radius: 10px",
-                icon("play")
-              ),
-              shiny::br(),
-              shiny::br(),
-              shiny::plotOutput(
-                outputId = "plotROI",
-                width = "auto",
-                click = "roi_click"
-              ),
-              align = "center"
-            ),
-            shiny::tabPanel(
+              value = "track",
               title = list(fontawesome::fa("right-from-bracket"), "Output"),
               shiny::br(),
               shiny::downloadButton(
@@ -323,39 +333,37 @@ ui <- shiny::fluidPage(
             <p>6. Click <b>Analyze</b>. Wait until the red progress bar on the top stops blinking.</p>
             <p>7. Check <b>Output</b> tab to visualize the processed video.</p>
             <p>8. Check <b>Plots</b> and <b>Table</b> tabs for the results.</p>
-            <p>8. Click on <b>Downloads</b> to download time series for:</p>
-            <p>9. Click <b>Reset</b> icon for running new analisys.",
+            <p>9. Click <b>Reset</b> icon before running new analisys.",
+          ),
+        ),
+        shiny::tabPanel(
+          title = list(fontawesome::fa("people-group")),
+          shiny::br(),
+          shiny::HTML("<a href=\"mailto:arthurde@souunisuam.com.br\">Arthur Ferreira, DSc</a>"),
+          shiny::HTML("<b> (Author)</b>"),
+          shiny::br(),
+          shiny::HTML(
+            "<a href=\"mailto:gustavo.telles@souunisuam.com.br\">Gustavo Telles, MSc</a>; <a href=\"mailto:jessica.rio@souunisuam.com.br\">Jessica Rio, MSc</a>; <a href=\"mailto:alicepagnez@souunisuam.com.br\"> Maria Alice Pagnez, DSc</a>; <a href=\"mailto:leandronogueira@souunisuam.com.br\">Leandro Nogueira, DSc</a>"
+          ),
+          shiny::HTML("<b> (Contributors)</b>"),
+          shiny::br(),
+          shiny::HTML(
+            "<a href=\"https://www.unisuam.edu.br/programa-pos-graduacao-ciencias-da-reabilitacao\">PPGCR</a> | Programa de Pós-graduação em Ciências da Reabilitação, Centro Universitário Augusto Motta, Rio de Janeiro, RJ, Brazil"
+          ),
+          shiny::HTML("<b> (Affiliation)</b>"),
+          shiny::br(),
+          shiny::br(),
+          shiny::HTML("<b>License</b>"),
+          shiny::HTML(
+            "This work is licensed under an <a rel=\"license\" data-spdx=\"Apache-2.0\" href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache License 2.0</a>."
+          ),
+          shiny::br(),
+          shiny::HTML("<b>Cite as</b>"),
+          shiny::HTML(
+            "Ferreira, A.S. (2023). UsIA | Ultrasound Image Analysis (1.0.0). Zenodo. https://doi.org/10.5281/zenodo.10439718"
           ),
         ),
       ),
-  # draw horizontal line
-  shiny::br(),
-  shiny::tags$hr(style = "border-top: 2px solid #000000;"),
-  shiny::HTML("<b>About</b>"),
-  shiny::br(),
-  shiny::HTML("<a href=\"mailto:arthurde@souunisuam.com.br\">Arthur Ferreira, DSc</a>"),
-  shiny::HTML("<b> (Author)</b>"),
-  shiny::br(),
-  shiny::HTML(
-    "<a href=\"mailto:gustavo.telles@souunisuam.com.br\">Gustavo Telles, MSc</a>; <a href=\"mailto:jessica.rio@souunisuam.com.br\">Jessica Rio, MSc</a>; <a href=\"mailto:alicepagnez@souunisuam.com.br\"> Maria Alice Pagnez, DSc</a>; <a href=\"mailto:leandronogueira@souunisuam.com.br\">Leandro Nogueira, DSc</a>"
-  ),
-  shiny::HTML("<b> (Contributors)</b>"),
-  shiny::br(),
-  shiny::HTML(
-    "<a href=\"https://www.unisuam.edu.br/programa-pos-graduacao-ciencias-da-reabilitacao\">PPGCR</a> | Programa de Pós-graduação em Ciências da Reabilitação, Centro Universitário Augusto Motta, Rio de Janeiro, RJ, Brazil"
-  ),
-  shiny::HTML("<b> (Affiliation)</b>"),
-  shiny::br(),
-  shiny::br(),
-  shiny::HTML("<b>License</b>"),
-  shiny::HTML(
-    "This work is licensed under an <a rel=\"license\" data-spdx=\"Apache-2.0\" href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache License 2.0</a>."
-  ),
-  shiny::br(),
-  shiny::HTML("<b>Cite as</b>"),
-  shiny::HTML(
-    "Ferreira, A.S. (2023). UsIA | Ultrasound Image Analysis (1.0.0). Zenodo. https://doi.org/10.5281/zenodo.10439718"
-  ),
 )
 
 # Define server script
@@ -368,7 +376,7 @@ server <- function(input, output, session) {
   meas_coords <-
     shiny::reactiveValues(xy = data.frame(x = c(1, 1),  y = c(1, 1)))
   
-  # observe plot clic event ---------------------------------------------------------
+  # observe plot click event ---------------------------------------------------------
   shiny::observeEvent(input$roi_click, {
     roi_coords$xy[2, ] <- c(input$roi_click$x, input$roi_click$y)
   })
@@ -377,16 +385,10 @@ server <- function(input, output, session) {
     meas_coords$xy[2, ] <- c(input$img_click$x, input$img_click$y)
   })
   
-  # change to tab Input under event ---------------------------------------------------------
-  shiny::observeEvent(input[["InputFile"]], {
-    shiny::updateTabsetPanel(inputId = "tabResults",
-                             selected = "Input")
-  })
-  
-  # change to tab Output under event ---------------------------------------------------------
+  # change to tab under event ---------------------------------------------------------
   shiny::observeEvent(input[["buttAnalyze"]], {
-    shiny::updateTabsetPanel(inputId = "tabResults",
-                             selected = "Output")
+    shiny::updateTabsetPanel(inputId = "tabTrack",
+                             selected = "track")
   })
   
   # enable/disable filter
@@ -395,11 +397,26 @@ server <- function(input, output, session) {
   })
   
   # upload video ---------------------------------------------------------
-  Video <- shiny::eventReactive(input[["InputFile"]], {
-    input[["InputFile"]][["datapath"]]
+  values <- shiny::reactiveValues(
+    upload_state = NULL
+  )
+  
+  shiny::observeEvent(input$InputFile, {
+    values$upload_state <- 'uploaded'
   })
-  videoname <- shiny::reactive ({
-    paste(input$InputFile)
+  
+  shiny::observeEvent(input$refresh, {
+    values$upload_state <- 'refresh'
+  })
+  
+  Video <- shiny::reactive({
+    if (is.null(values$upload_state)) {
+      return(NULL)
+    } else if (values$upload_state == 'uploaded') {
+      return(input[["InputFile"]][["datapath"]])
+    } else if (values$upload_state == 'refresh') {
+      return(NULL)
+    }
   })
   
   # play uploaded video ---------------------------------------------------------
@@ -412,7 +429,7 @@ server <- function(input, output, session) {
     roi_coords$xy[2, ] <- c(info$video$width / 2, info$video$height / 2)
     
     # center ROI for the first time
-    roi_coords$xy[2, ] <- c(info$video$width / 2, info$video$height / 2)
+    meas_coords$xy[2, ] <- c(info$video$width / 2, info$video$height / 2)
     
     # copy and rename file
     file.copy(from = Video(),
@@ -758,7 +775,7 @@ server <- function(input, output, session) {
     file.exists(file.path(dir.name, "CSV", "displacement.csv"))) {
       info <- av::av_media_info(Video())
       data.frame(
-        "File name" = videoname()[1],
+        "File name" = input$InputFile[1],
         "Frames (n)" = info$video$frames,
         "Start - End (frames)" = paste0(input$framesEdit[1], " - ", input$framesEdit[2]),
         "Video size (px)" = paste0(info$video$width, " x ", info$video$height),
@@ -798,7 +815,7 @@ server <- function(input, output, session) {
     } else {
       info <- av::av_media_info(Video())
       data.frame(
-        "File name" = videoname()[1],
+        "File name" = input$InputFile[1],
         "Frames (n)" = info$video$frames,
         "Start - End (frames)" = paste0(input$framesEdit[1], " - ", input$framesEdit[2]),
         "Video size (px)" = paste0(info$video$width, " x ", info$video$height),
@@ -822,7 +839,6 @@ server <- function(input, output, session) {
   # plot results of th CSV files ---------------------------------------------------------
   output[["plotResults"]] <- shiny::renderImage({
     shiny::req(Video())
-    shiny::req(file.path(dir.name, "outputvideo.mp4"))
     # Get video info such as width, height, format, duration and framerate
     info <-
       av::av_media_info(file.path(dir.name, "outputvideo.mp4"))
@@ -842,6 +858,7 @@ server <- function(input, output, session) {
   
   # show datatable of results ---------------------------------------------------------
   output[["tableResults"]] <- DT::renderDataTable({
+    shiny::req(Video())
     shiny::req(df())
     df <- t(df())
     labels <-
