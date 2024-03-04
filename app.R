@@ -11,7 +11,13 @@ R.utils::copyDirectory(from = "favicon_io", to = file.path(dir.name, "favicon_io
 # load libraries
 library(dplyr)
 library(htmltools)
+# if (!require("BiocManager", quietly = TRUE))
+#   install.packages("BiocManager")
+#   BiocManager::install(version = "3.16")
 library(BiocManager)
+# if (!require("BiocManager", quietly = TRUE))
+#   install.packages("BiocManager")
+#   BiocManager::install("EBImage")
 library(EBImage)
 
 # source all scripts
