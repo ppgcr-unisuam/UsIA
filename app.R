@@ -153,22 +153,58 @@ ui <- shiny::fluidPage(
             shiny::tabPanel(
               title = list(fontawesome::fa("image"), "Frame"),
               shiny::br(),
-              shiny::sliderInput(
-                inputId = "imgEdit",
-                label = NULL,
-                min = 1,
-                max = 100,
-                value = 1,
-                step = 1,
-                ticks = FALSE,
-                animate = TRUE,
-                width = "100%"
+              # split two columns
+              shiny::fluidRow(
+                shiny::column(
+                  4,
+                  shiny::sliderInput(
+                    inputId = "imgEdit",
+                    label = "Frame",
+                    min = 1,
+                    max = 100,
+                    value = 1,
+                    step = 1,
+                    ticks = FALSE,
+                    animate = TRUE,
+                    width = "100%"
+                  ),
+                  shiny::sliderInput(
+                    inputId = "KernelSizeMeas",
+                    label = "Object (px)",
+                    min = 1,
+                    max = 201,
+                    value = 50,
+                    step = 2,
+                    ticks = FALSE,
+                    width = "100%",
+                  ),
+                  shiny::numericInput(
+                    inputId = "imgScale",
+                    label = "Scale (mm)",
+                    value = 1,
+                    min = 0.1,
+                    max = 10,
+                    step = 0.1,
+                    width = "100%"
+                  ),
+                  shiny::br(),
+                  align = "center"
+                ),
+                shiny::column(
+                  8,
+                  shiny::plotOutput(
+                    outputId = "plotMeasure",
+                    width = "auto",
+                    click = "img_click"
+                  ),
+                ),
               ),
-              shiny::plotOutput(
-                outputId = "plotMeasure",
-                width = "auto",
-                click = "img_click"
-              ),
+              align = "center"
+            ),
+            shiny::tabPanel(
+              title = list(fontawesome::fa("table"), "Tables"),
+              shiny::br(),
+              DT::dataTableOutput("tableMeasure", width = "100%"),
               align = "center"
             ),
           ),
@@ -185,9 +221,9 @@ ui <- shiny::fluidPage(
               # split two columns
               shiny::fluidRow(
                 shiny::column(
-                  6,
+                  4,
                   shiny::sliderInput(
-                    inputId = "KernelSize",
+                    inputId = "KernelSizeTrack",
                     label = "Object (px)",
                     min = 1,
                     max = 201,
@@ -245,7 +281,7 @@ ui <- shiny::fluidPage(
                   align = "center"
                 ),
                 shiny::column(
-                  6,
+                  8,
                   shiny::tabPanel(
                     title = list(fontawesome::fa("crop"), "ROI"),
                     shiny::br(),
@@ -311,13 +347,13 @@ ui <- shiny::fluidPage(
               ),
               shiny::br(),
               shiny::br(),
-              shiny::plotOutput("plotResults",  width = "100%"),
+              shiny::plotOutput("plotTrack",  width = "100%"),
               align = "center"
             ),
             shiny::tabPanel(
               title = list(fontawesome::fa("table"), "Tables"),
               shiny::br(),
-              DT::dataTableOutput("tableResults", width = "100%"),
+              DT::dataTableOutput("tableTrack", width = "100%"),
               align = "center"
             ),
           ),
@@ -489,7 +525,7 @@ server <- function(input, output, session) {
   # edit mp4 video using the sliderEdit input ---------------------------------------------------------
   output[["videoedit"]] <- shiny::renderUI({
     shiny::req(Video())
-    req(input$framesEdit)
+    shiny::req(input$framesEdit)
     # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
     
@@ -523,6 +559,16 @@ server <- function(input, output, session) {
       fps = NULL
     )
     
+    # update max value of slider under event
+    shiny::updateSliderInput(
+      inputId = "imgEdit",
+      min = 1,
+      value = 1,
+      max = length(list.files(
+        file.path(dir.name, "1 edited"), pattern = ".png"
+      ))
+    )
+    
     # show video
     tags$video(
       width = "90%",
@@ -535,7 +581,8 @@ server <- function(input, output, session) {
   # plot single frame of video imgEdit ---------------------------------------------------------
   output[["plotMeasure"]] <- shiny::renderPlot({
     shiny::req(Video())
-    req(input$imgEdit)
+    shiny::req(input$framesEdit)
+    shiny::req(input$imgEdit)
     # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
     
@@ -569,26 +616,12 @@ server <- function(input, output, session) {
     
     # draw object rectangle
     rect(
-      xleft = meas_coords$xy[2, 1] - floor(input$KernelSize / 2),
-      ybottom = meas_coords$xy[2, 2] - floor(input$KernelSize / 2),
-      xright = meas_coords$xy[2, 1] + floor(input$KernelSize / 2),
-      ytop = meas_coords$xy[2, 2] + floor(input$KernelSize / 2),
+      xleft = meas_coords$xy[2, 1] - floor(input$KernelSizeMeas / 2),
+      ybottom = meas_coords$xy[2, 2] - floor(input$KernelSizeMeas / 2),
+      xright = meas_coords$xy[2, 1] + floor(input$KernelSizeMeas / 2),
+      ytop = meas_coords$xy[2, 2] + floor(input$KernelSizeMeas / 2),
       col = "transparent",
       border = "red",
-      lty = "solid",
-      lwd = 2
-    )
-    
-    roi <-
-      round_2_odd(input$KernelSize * (1 + as.numeric(input$Overlap) / 100)) # odd numbers only
-    # draw ROI rectangle
-    rect(
-      xleft = meas_coords$xy[2, 1] - floor(roi / 2),
-      ybottom = meas_coords$xy[2, 2] - floor(roi / 2),
-      xright = meas_coords$xy[2, 1] + floor(roi / 2),
-      ytop = meas_coords$xy[2, 2] + floor(roi / 2),
-      col = "transparent",
-      border = "yellow",
       lty = "solid",
       lwd = 2
     )
@@ -608,10 +641,121 @@ server <- function(input, output, session) {
   }, height = function() {
     (session$clientData$output_plotMeasure_width) * (0.6584)
   })
-
+  
+  # measurements of single frame of video imgEdit ---------------------------------------------------------
+  output[["tableMeasure"]] <- DT::renderDataTable({
+    shiny::req(Video())
+    shiny::req(input$framesEdit)
+    shiny::req(input$imgEdit)
+    shiny::req(input$KernelSizeMeas)
+    shiny::req(input$imgScale)
+    
+    # Get video info such as width, height, format, duration and framerate
+    info <- av::av_media_info(Video())
+    
+    # show 1st frame
+    img <-
+      magick::image_read(
+        list.files(
+          path = file.path(dir.name, "1 edited"),
+          full.names = TRUE,
+          pattern = "png")[input$imgEdit]
+      )
+    
+    # subset img matrix data using meas_coords
+    img_object <- as.integer(img[[1]])
+    # get separate channels
+    img_object_R <- img_object[, , 1]
+    img_object_G <- img_object[, , 2]
+    img_object_B <- img_object[, , 3]
+    
+    img_object_R <-
+      img_object_R[meas_coords$xy[2, 2] - floor(input$KernelSizeMeas / 2):meas_coords$xy[2, 2] + floor(input$KernelSizeMeas / 2),
+                   meas_coords$xy[2, 1] - floor(input$KernelSizeMeas / 2):meas_coords$xy[2, 1] + floor(input$KernelSizeMeas / 2)]
+    img_object_G <-
+      img_object_G[meas_coords$xy[2, 2] - floor(input$KernelSizeMeas / 2):meas_coords$xy[2, 2] + floor(input$KernelSizeMeas / 2),
+                   meas_coords$xy[2, 1] - floor(input$KernelSizeMeas / 2):meas_coords$xy[2, 1] + floor(input$KernelSizeMeas / 2)]
+    img_object_B <-
+      img_object_B[meas_coords$xy[2, 2] - floor(input$KernelSizeMeas / 2):meas_coords$xy[2, 2] + floor(input$KernelSizeMeas / 2),
+                   meas_coords$xy[2, 1] - floor(input$KernelSizeMeas / 2):meas_coords$xy[2, 1] + floor(input$KernelSizeMeas / 2)]
+    
+    # custom functions
+    source("f_meas.R", local = TRUE)
+    data <- f_measurement(R = img_object_R, G = img_object_G, B = img_object_B)
+    
+    # distance
+    distancia <- 0
+    
+    # cross-sectional area
+    area <- distancia * distancia * pi
+    
+    # show measurements
+    df_meas <- data.frame(
+      "File name" = input$InputFile[1],
+      "Frames (n)" = info$video$frames,
+      "Start - End (frames)" = paste0(input$framesEdit[1], " - ", input$framesEdit[2]),
+      "Video size (px)" = paste0(info$video$width, " x ", info$video$height),
+      "Current frame (n)" = input$imgEdit[1],
+      "X0 (px)" = round(meas_coords$xy[2, 1], 0),
+      "Y0 (px)" = round(meas_coords$xy[2, 2], 0),
+      "Object size (px)" = input$KernelSizeMeas,
+      "Distance (mm)" = round(distancia, digits = 2),
+      "Cross-sectional area (mm²)" = round(area, digits = 2),
+      "Threshold (Otsu)" = data$threshold,
+      "Echogenicity (%)" = round(data$ecogenicidade, digits = 2)
+    )
+    df_meas <- t(df_meas)
+    
+    labels <-
+      c(
+        "File name",
+        "Frames (n)",
+        "Start - End (frames)",
+        "Video size (px)",
+        "Current frame (n)",
+        "X0 (px)",
+        "Y0 (px)",
+        "Object size (px)",
+        "Distance (mm)",
+        "Cross-sectional area (mm²)",
+        "Threshold (Otsu)",
+        "Echogenicity (%)"
+      )
+    rownames(df_meas) <-
+      labels
+    
+    # show DT table with buttons
+    DT::datatable(
+      df_meas,
+      rownames = TRUE,
+      colnames = rep("", ncol(df_meas)),
+      extensions = c("Buttons", "FixedColumns"),
+      options = list(
+        dom = "B",
+        ordering = F,
+        buttons = list(
+          list(extend = "copy",
+               text = "Copy"),
+          list(extend = "csv",
+               text = "CSV"),
+          list(extend = "excel",
+               text = "Excel"),
+          list(extend = "pdf",
+               text = "PDF")
+        ),
+        fixedColumns = TRUE,
+        pageLength = length(labels),
+        autoWidth = TRUE,
+        columnDefs = list(list(className = 'dt-center', targets = "_all"))
+      )
+    )
+  })
+  
   # show PNG file of 1st frame ---------------------------------------------------------
   output[["plotROI"]] <- shiny::renderPlot({
     shiny::req(Video())
+    shiny::req(input$framesEdit)
+    
     # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
     
@@ -645,10 +789,10 @@ server <- function(input, output, session) {
     
     # draw object rectangle
     rect(
-      xleft = roi_coords$xy[2, 1] - floor(input$KernelSize / 2),
-      ybottom = roi_coords$xy[2, 2] - floor(input$KernelSize / 2),
-      xright = roi_coords$xy[2, 1] + floor(input$KernelSize / 2),
-      ytop = roi_coords$xy[2, 2] + floor(input$KernelSize / 2),
+      xleft = roi_coords$xy[2, 1] - floor(input$KernelSizeTrack / 2),
+      ybottom = roi_coords$xy[2, 2] - floor(input$KernelSizeTrack / 2),
+      xright = roi_coords$xy[2, 1] + floor(input$KernelSizeTrack / 2),
+      ytop = roi_coords$xy[2, 2] + floor(input$KernelSizeTrack / 2),
       col = "transparent",
       border = "red",
       lty = "solid",
@@ -656,7 +800,7 @@ server <- function(input, output, session) {
     )
     
     roi <-
-      round_2_odd(input$KernelSize * (1 + as.numeric(input$Overlap) / 100)) # odd numbers only
+      round_2_odd(input$KernelSizeTrack * (1 + as.numeric(input$Overlap) / 100)) # odd numbers only
     # draw ROI rectangle
     rect(
       xleft = roi_coords$xy[2, 1] - floor(roi / 2),
@@ -700,7 +844,7 @@ server <- function(input, output, session) {
       filtersize = input$FilterSize,
       overlap = input$Overlap,
       jump = input$Jump,
-      kernel = input$KernelSize
+      kernel = input$KernelSizeTrack
     )
     
     # draw trajectory on images
@@ -787,7 +931,7 @@ server <- function(input, output, session) {
         "Video size (px)" = paste0(info$video$width, " x ", info$video$height),
         "X0 (px)" = round(roi_coords$xy[2, 1], 0),
         "Y0 (px)" = round(roi_coords$xy[2, 2], 0),
-        "Object size (px)" = input$KernelSize,
+        "Object size (px)" = input$KernelSizeTrack,
         "Filter type" = input$FilterType,
         "Filter size (px)" = input$FilterSize,
         "Overlap (%)" = input$Overlap,
@@ -827,7 +971,7 @@ server <- function(input, output, session) {
         "Video size (px)" = paste0(info$video$width, " x ", info$video$height),
         "X0 (px)" = round(roi_coords$xy[2, 1], 0),
         "Y0 (px)" = round(roi_coords$xy[2, 2], 0),
-        "Object size (px)" = input$KernelSize,
+        "Object size (px)" = input$KernelSizeTrack,
         "Filter type" = input$FilterType,
         "Filter size (px)" = input$FilterSize,
         "Overlap (%)" = input$Overlap,
@@ -843,7 +987,7 @@ server <- function(input, output, session) {
     })
   
   # plot results of th CSV files ---------------------------------------------------------
-  output[["plotResults"]] <- shiny::renderImage({
+  output[["plotTrack"]] <- shiny::renderImage({
     shiny::req(Video())
     # Get video info such as width, height, format, duration and framerate
     info <-
@@ -853,7 +997,7 @@ server <- function(input, output, session) {
     img <- htmltools::capturePlot({
       plot.trajectory(res.dir = file.path(dir.name, "CSV"),
                       info = info)
-    }, height = "500", width = "500")
+    }, height = 500, width = 500)
     list(
       src = img,
       height = "auto",
@@ -863,7 +1007,7 @@ server <- function(input, output, session) {
   }, deleteFile = TRUE)
   
   # show datatable of results ---------------------------------------------------------
-  output[["tableResults"]] <- DT::renderDataTable({
+  output[["tableTrack"]] <- DT::renderDataTable({
     shiny::req(Video())
     shiny::req(df())
     df <- t(df())
