@@ -27,11 +27,11 @@ f_measurement <- function(
   frame.bin[frame.gray <= threshold] <- 0
   img_object <- as.vector(frame.bin)
   
-  # count
-  ecogenicidade <- sum(img_object) / length(img_object) * 100
+  # count B&W
+  ecogenicidade_bw <- sum(img_object) / length(img_object) * 100
   
-  # mean
-  ecogenicidade <- mean(frame.gray) / 255 * 100
+  # mean grayscale
+  ecogenicidade_gray <- mean(frame.gray) / 255 * 100
   
-  return(list("threshold" = threshold, "ecogenicidade" = ecogenicidade))
+  return(list("threshold" = threshold, "ecogenicidade_bw" = ecogenicidade_bw, "ecogenicidade_gray" = ecogenicidade_gray))
 }

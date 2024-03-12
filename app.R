@@ -420,11 +420,11 @@ server <- function(input, output, session) {
   
   # observe plot click event ---------------------------------------------------------
   shiny::observeEvent(input$roi_click, {
-    roi_coords$xy[2, ] <- c(input$roi_click$x, input$roi_click$y)
+    roi_coords$xy[2, ] <- round(c(input$roi_click$x, input$roi_click$y), digits = 0)
   })
   
   shiny::observeEvent(input$img_click, {
-    meas_coords$xy[2, ] <- c(input$img_click$x, input$img_click$y)
+    meas_coords$xy[2, ] <- round(c(input$img_click$x, input$img_click$y), digits = 0)
   })
   
   # change to tab under event ---------------------------------------------------------
@@ -669,15 +669,19 @@ server <- function(input, output, session) {
     img_object_G <- img_object[, , 2]
     img_object_B <- img_object[, , 3]
     
-    img_object_R <-
-      img_object_R[meas_coords$xy[2, 2] - floor(input$KernelSizeMeas / 2):meas_coords$xy[2, 2] + floor(input$KernelSizeMeas / 2),
-                   meas_coords$xy[2, 1] - floor(input$KernelSizeMeas / 2):meas_coords$xy[2, 1] + floor(input$KernelSizeMeas / 2)]
-    img_object_G <-
-      img_object_G[meas_coords$xy[2, 2] - floor(input$KernelSizeMeas / 2):meas_coords$xy[2, 2] + floor(input$KernelSizeMeas / 2),
-                   meas_coords$xy[2, 1] - floor(input$KernelSizeMeas / 2):meas_coords$xy[2, 1] + floor(input$KernelSizeMeas / 2)]
-    img_object_B <-
-      img_object_B[meas_coords$xy[2, 2] - floor(input$KernelSizeMeas / 2):meas_coords$xy[2, 2] + floor(input$KernelSizeMeas / 2),
-                   meas_coords$xy[2, 1] - floor(input$KernelSizeMeas / 2):meas_coords$xy[2, 1] + floor(input$KernelSizeMeas / 2)]
+    # flip image vertically
+    img_object_R <- img_object_R[nrow(img_object_R):1, ]
+    img_object_G <- img_object_G[nrow(img_object_G):1, ]
+    img_object_B <- img_object_B[nrow(img_object_B):1, ]
+    
+    xleft <- meas_coords$xy[2, 1] - floor(input$KernelSizeMeas / 2)
+    xright <- meas_coords$xy[2, 1] + floor(input$KernelSizeMeas / 2)
+    ybottom <- meas_coords$xy[2, 2] - floor(input$KernelSizeMeas / 2)
+    ytop <- meas_coords$xy[2, 2] + floor(input$KernelSizeMeas / 2)
+
+    img_object_R <- img_object_R[ytop:ybottom, xleft:xright]
+    img_object_G <- img_object_G[ytop:ybottom, xleft:xright]
+    img_object_B <- img_object_B[ytop:ybottom, xleft:xright]
     
     # custom functions
     source("f_meas.R", local = TRUE)
@@ -702,7 +706,8 @@ server <- function(input, output, session) {
       "Distance (mm)" = round(distancia, digits = 2),
       "Cross-sectional area (mm²)" = round(area, digits = 2),
       "Threshold (Otsu)" = data$threshold,
-      "Echogenicity (%)" = round(data$ecogenicidade, digits = 2)
+      "Echogenicity, B&W (%)" = round(data$ecogenicidade_bw, digits = 2),
+      "Echogenicity, gray (%)" = round(data$ecogenicidade_gray, digits = 2)
     )
     df_meas <- t(df_meas)
     
@@ -719,7 +724,8 @@ server <- function(input, output, session) {
         "Distance (mm)",
         "Cross-sectional area (mm²)",
         "Threshold (Otsu)",
-        "Echogenicity (%)"
+        "Echogenicity, B&W (%)",
+        "Echogenicity, gray (%)"
       )
     rownames(df_meas) <-
       labels
