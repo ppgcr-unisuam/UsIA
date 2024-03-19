@@ -77,11 +77,11 @@ ui <- shiny::fluidPage(
       shiny::column(
         4,
         tags$a(
-          id = "refresh",
+          id = "restart",
           class = "btn btn-primary",
           href = "javascript:history.go(0)",
           shiny::HTML('<i class="fa fa-refresh fa-1x"></i>'),
-          title = "Reset",
+          title = "restart",
           style = "color:white; border-color:white; border-radius:100%"
         ),
         style = "text-align:right;"
@@ -168,16 +168,6 @@ ui <- shiny::fluidPage(
                     animate = TRUE,
                     width = "100%"
                   ),
-                  shiny::sliderInput(
-                    inputId = "KernelSizeMeas",
-                    label = "Object (px)",
-                    min = 1,
-                    max = 201,
-                    value = 50,
-                    step = 2,
-                    ticks = FALSE,
-                    width = "100%",
-                  ),
                   shiny::numericInput(
                     inputId = "imgScale",
                     label = "Scale (mm)",
@@ -188,6 +178,13 @@ ui <- shiny::fluidPage(
                     width = "100%"
                   ),
                   shiny::br(),
+                  shiny::actionButton(
+                    inputId = "reset",
+                    label = "Reset ROI",
+                    width = "100%"),
+                  shiny::br(),
+                  htmltools::h5(htmltools::strong("Click"), " on plot to start. ", htmltools::strong("Move"), " the cursor to draw the ROI. ", htmltools::strong("Click"), " again to stop."),
+                  shiny::br(),
                   align = "center"
                 ),
                 shiny::column(
@@ -195,7 +192,14 @@ ui <- shiny::fluidPage(
                   shiny::plotOutput(
                     outputId = "plotMeasure",
                     width = "auto",
-                    click = "img_click"
+                    click = "img_click",
+                    hover = shiny::hoverOpts(
+                      id = "hover",
+                      delay = 100,
+                      delayType = "throttle",
+                      clip = TRUE,
+                      nullOutside = TRUE
+                    )
                   ),
                 ),
               ),
@@ -375,14 +379,14 @@ ui <- shiny::fluidPage(
             <p>6. Click <b>Analyze</b>. Wait until the red progress bar on the top stops blinking.</p>
             <p>7. Check <b>Output</b> tab to visualize the processed video.</p>
             <p>8. Check <b>Plots</b> and <b>Table</b> tabs for the results.</p>
-            <p>9. Click <b>Reset</b> icon before running new analisys.",
+            <p>9. Click <b>restart</b> icon before running new analisys.",
           ),
         ),
         shiny::tabPanel(
           title = list(fontawesome::fa("people-group")),
           shiny::br(),
           shiny::HTML("<a href=\"mailto:arthurde@souunisuam.com.br\">Arthur Ferreira, DSc</a>"),
-          shiny::HTML("<b> (Author)</b>"),
+          shiny::HTML("<b> (Developer)</b>"),
           shiny::br(),
           shiny::HTML(
             "<a href=\"mailto:gustavo.telles@souunisuam.com.br\">Gustavo Telles, MSc</a>; <a href=\"mailto:jessica.rio@souunisuam.com.br\">Jessica Rio, MSc</a>; <a href=\"mailto:alicepagnez@souunisuam.com.br\"> Maria Alice Pagnez, DSc</a>; <a href=\"mailto:leandronogueira@souunisuam.com.br\">Leandro Nogueira, DSc</a>"
@@ -415,16 +419,32 @@ server <- function(input, output, session) {
   roi_coords <-
     shiny::reactiveValues(xy = data.frame(x = c(1, 1),  y = c(1, 1)))
   
-  meas_coords <-
-    shiny::reactiveValues(xy = data.frame(x = c(1, 1),  y = c(1, 1)))
-  
   # observe plot click event ---------------------------------------------------------
   shiny::observeEvent(input$roi_click, {
     roi_coords$xy[2, ] <- round(c(input$roi_click$x, input$roi_click$y), digits = 0)
   })
   
-  shiny::observeEvent(input$img_click, {
-    meas_coords$xy[2, ] <- round(c(input$img_click$x, input$img_click$y), digits = 0)
+  # free-hand drawing
+  vals = shiny::reactiveValues(x = NULL, y = NULL)
+  draw = shiny::reactiveVal(FALSE)
+  shiny::observeEvent(input$img_click, handlerExpr = {
+    temp <- draw()
+    draw(!temp)
+    if (!draw()) {
+      vals$x <- c(vals$x, NA)
+      vals$y <- c(vals$y, NA)
+    }
+  })
+  shiny::observeEvent(input$hover, {
+    if (draw()) {
+      vals$x <- c(vals$x, input$hover$x)
+      vals$y <- c(vals$y, input$hover$y)
+      # Convert a linestring into a closed polygon when the points are not in order
+    }
+  })
+  shiny::observeEvent(input$reset, handlerExpr = {
+    vals$x <- NULL
+    vals$y <- NULL
   })
   
   # change to tab under event ---------------------------------------------------------
@@ -447,8 +467,8 @@ server <- function(input, output, session) {
     values$upload_state <- 'uploaded'
   })
   
-  shiny::observeEvent(input$refresh, {
-    values$upload_state <- 'refresh'
+  shiny::observeEvent(input$restart, {
+    values$upload_state <- 'restart'
   })
   
   Video <- shiny::reactive({
@@ -456,7 +476,7 @@ server <- function(input, output, session) {
       return(NULL)
     } else if (values$upload_state == 'uploaded') {
       return(input[["InputFile"]][["datapath"]])
-    } else if (values$upload_state == 'refresh') {
+    } else if (values$upload_state == 'restart') {
       return(NULL)
     }
   })
@@ -469,9 +489,6 @@ server <- function(input, output, session) {
     
     # center ROI for the first time
     roi_coords$xy[2, ] <- c(info$video$width / 2, info$video$height / 2)
-    
-    # center ROI for the first time
-    meas_coords$xy[2, ] <- c(info$video$width / 2, info$video$height / 2)
     
     # copy and rename file
     file.copy(from = Video(),
@@ -609,35 +626,16 @@ server <- function(input, output, session) {
       asp = 1,
       col = pal
     )
-    # custom functions
-    round_2_odd <- function(x) {
-      2 * floor(x / 2) + 1
-    }
     
-    # draw object rectangle
-    rect(
-      xleft = meas_coords$xy[2, 1] - floor(input$KernelSizeMeas / 2),
-      ybottom = meas_coords$xy[2, 2] - floor(input$KernelSizeMeas / 2),
-      xright = meas_coords$xy[2, 1] + floor(input$KernelSizeMeas / 2),
-      ytop = meas_coords$xy[2, 2] + floor(input$KernelSizeMeas / 2),
-      col = "transparent",
-      border = "red",
+    # draw free-hand object
+    lines(
+      x = vals$x,
+      y = vals$y,
+      col = "red",
       lty = "solid",
       lwd = 2
     )
-    # show coordinates of ROI
-    text(
-      x = meas_coords$xy[2, 1],
-      y = meas_coords$xy[2, 2],
-      paste0(
-        "x=",
-        round(meas_coords$xy[2, 1], 0),
-        "\n",
-        "y=",
-        round(meas_coords$xy[2, 2], 0)
-      ),
-      col = "red"
-    )
+    
   }, height = function() {
     (session$clientData$output_plotMeasure_width) * (0.6584)
   })
@@ -647,7 +645,6 @@ server <- function(input, output, session) {
     shiny::req(Video())
     shiny::req(input$framesEdit)
     shiny::req(input$imgEdit)
-    shiny::req(input$KernelSizeMeas)
     shiny::req(input$imgScale)
     
     # Get video info such as width, height, format, duration and framerate
@@ -662,9 +659,8 @@ server <- function(input, output, session) {
           pattern = "png")[input$imgEdit]
       )
     
-    # subset img matrix data using meas_coords
-    img_object <- as.integer(img[[1]])
     # get separate channels
+    img_object <- as.integer(img[[1]])
     img_object_R <- img_object[, , 1]
     img_object_G <- img_object[, , 2]
     img_object_B <- img_object[, , 3]
@@ -674,15 +670,24 @@ server <- function(input, output, session) {
     img_object_G <- img_object_G[nrow(img_object_G):1, ]
     img_object_B <- img_object_B[nrow(img_object_B):1, ]
     
-    xleft <- meas_coords$xy[2, 1] - floor(input$KernelSizeMeas / 2)
-    xright <- meas_coords$xy[2, 1] + floor(input$KernelSizeMeas / 2)
-    ybottom <- meas_coords$xy[2, 2] - floor(input$KernelSizeMeas / 2)
-    ytop <- meas_coords$xy[2, 2] + floor(input$KernelSizeMeas / 2)
-
-    img_object_R <- img_object_R[ytop:ybottom, xleft:xright]
-    img_object_G <- img_object_G[ytop:ybottom, xleft:xright]
-    img_object_B <- img_object_B[ytop:ybottom, xleft:xright]
+    # create closed polygon
+    poly <- round(concaveman::concaveman(cbind(vals$x, vals$y), concavity = 1, length_threshold = 0), 0)
+    poly <- poly[complete.cases(poly), ]
     
+    # subset the image using polygon coordinates
+    img_object_R <- img_object_R[
+      min(poly[, 1]):max(poly[, 1]),
+      min(poly[, 2]):max(poly[, 2])
+    ]
+    img_object_G <- img_object_G[
+      min(poly[, 1]):max(poly[, 1]),
+      min(poly[, 2]):max(poly[, 2])
+    ]
+    img_object_B <- img_object_B[
+      min(poly[, 1]):max(poly[, 1]),
+      min(poly[, 2]):max(poly[, 2])
+    ]
+
     # custom functions
     source("f_meas.R", local = TRUE)
     data <- f_measurement(R = img_object_R, G = img_object_G, B = img_object_B)
@@ -700,9 +705,7 @@ server <- function(input, output, session) {
       "Start - End (frames)" = paste0(input$framesEdit[1], " - ", input$framesEdit[2]),
       "Video size (px)" = paste0(info$video$width, " x ", info$video$height),
       "Current frame (n)" = input$imgEdit[1],
-      "X0 (px)" = round(meas_coords$xy[2, 1], 0),
-      "Y0 (px)" = round(meas_coords$xy[2, 2], 0),
-      "Object size (px)" = input$KernelSizeMeas,
+      "Object size (px)" = max(poly[, 1] - min(poly[, 1])) * max(poly[, 2] - min(poly[, 2])),
       "Distance (mm)" = round(distancia, digits = 2),
       "Cross-sectional area (mm²)" = round(area, digits = 2),
       "Threshold (Otsu)" = data$threshold,
@@ -718,8 +721,6 @@ server <- function(input, output, session) {
         "Start - End (frames)",
         "Video size (px)",
         "Current frame (n)",
-        "X0 (px)",
-        "Y0 (px)",
         "Object size (px)",
         "Distance (mm)",
         "Cross-sectional area (mm²)",
@@ -1115,8 +1116,8 @@ server <- function(input, output, session) {
       }
     )
   
-  # reset button ---------------------------------------------------------
-  shinyjs::onclick("refresh", {
+  # restart button ---------------------------------------------------------
+  shinyjs::onclick("restart", {
     
     # clean InputFile
     shinyjs::reset("InputFile")
