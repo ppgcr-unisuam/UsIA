@@ -8,16 +8,13 @@ shiny::addResourcePath(prefix = "www", directoryPath = "www")
 # copy favicon folder to the www dir
 R.utils::copyDirectory(from = "favicon_io", to = file.path(dir.name, "favicon_io"))
 
-# install packages
-# install.packages("autothresholdr")
-# install.packages("mmand")
-# install.packages("imagefx")
 # if (!require("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
-#   BiocManager::install(version = "3.18")
+#   BiocManager::install(version = "3.19")
 # if (!require("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
 #   BiocManager::install("EBImage")
+# remotes::install_github("r-spatial/sf")
 
 # load libraries
 library(dplyr)
