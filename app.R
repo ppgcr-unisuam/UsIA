@@ -10,9 +10,6 @@ R.utils::copyDirectory(from = "favicon_io", to = file.path(dir.name, "favicon_io
 
 # if (!require("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
-#   BiocManager::install(version = "3.19")
-# if (!require("BiocManager", quietly = TRUE))
-#   install.packages("BiocManager")
 #   BiocManager::install("EBImage")
 # remotes::install_github("r-spatial/sf")
 
@@ -23,6 +20,8 @@ library(BiocManager)
 library(EBImage)
 
 # source all scripts
+source("f_border.R", local = TRUE)
+source("f_meas.R", local = TRUE)
 source("f_process_color.R", local = TRUE)
 source("f_process_detrend.R", local = TRUE)
 source("f_process_equalization.R", local = TRUE)
