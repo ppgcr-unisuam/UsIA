@@ -389,10 +389,12 @@ ui <- shiny::fluidPage(
           shiny::HTML("<a href=\"mailto:arthurde@souunisuam.com.br\">Arthur Ferreira, DSc</a>"),
           shiny::HTML("<b> (Developer)</b>"),
           shiny::br(),
+          shiny::br(),
           shiny::HTML(
             "<a href=\"mailto:gustavo.telles@souunisuam.com.br\">Gustavo Telles, MSc</a>; <a href=\"mailto:jessica.rio@souunisuam.com.br\">Jessica Rio, MSc</a>; <a href=\"mailto:alicepagnez@souunisuam.com.br\"> Maria Alice Pagnez, DSc</a>; <a href=\"mailto:leandronogueira@souunisuam.com.br\">Leandro Nogueira, DSc</a>"
           ),
           shiny::HTML("<b> (Contributors)</b>"),
+          shiny::br(),
           shiny::br(),
           shiny::HTML(
             "<a href=\"https://www.unisuam.edu.br/programa-pos-graduacao-ciencias-da-reabilitacao\">PPGCR</a> | Programa de Pós-graduação em Ciências da Reabilitação, Centro Universitário Augusto Motta, Rio de Janeiro, RJ, Brazil"
@@ -424,7 +426,6 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$roi_click, {
     roi_coords$xy[2, ] <- round(c(input$roi_click$x, input$roi_click$y), digits = 0)
   })
-  
   # free-hand drawing
   vals = shiny::reactiveValues(x = NULL, y = NULL)
   draw = shiny::reactiveVal(FALSE)
@@ -440,7 +441,6 @@ server <- function(input, output, session) {
     if (draw()) {
       vals$x <- c(vals$x, input$hover$x)
       vals$y <- c(vals$y, input$hover$y)
-      # Convert a linestring into a closed polygon when the points are not in order
     }
   })
   shiny::observeEvent(input$reset, handlerExpr = {
@@ -636,7 +636,6 @@ server <- function(input, output, session) {
       lty = "solid",
       lwd = 2
     )
-    
   }, height = function() {
     (session$clientData$output_plotMeasure_width) * (0.6584)
   })
@@ -691,7 +690,17 @@ server <- function(input, output, session) {
 
     # custom functions
     source("f_meas.R", local = TRUE)
-    data <- f_measurement(R = img_object_R, G = img_object_G, B = img_object_B)
+    data <- f_measurement(R = img_object_R, G = img_object_G, B = img_object_B, poly = poly)
+    contour <- data$contour
+    
+    # draw actual ROI object
+    lines(
+      x = contour$x,
+      y = contour$y,
+      col = "red",
+      lty = "solid",
+      lwd = 2
+    )
     
     # distance
     distancia <- 0
