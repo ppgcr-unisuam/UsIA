@@ -11,6 +11,7 @@ R.utils::copyDirectory(from = "favicon_io", to = file.path(dir.name, "favicon_io
 # if (!require("BiocManager", quietly = TRUE)){
 #   install.packages("BiocManager")
 #   BiocManager::install("EBImage")
+#   BiocManager::install()
 #   remotes::install_github("r-spatial/sf")
 # }
 
