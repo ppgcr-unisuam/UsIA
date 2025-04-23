@@ -9,11 +9,15 @@ shiny::addResourcePath(prefix = "www", directoryPath = "www")
 R.utils::copyDirectory(from = "favicon_io", to = file.path(dir.name, "favicon_io"))
 
 # if (!require("BiocManager", quietly = TRUE)){
-#   install.packages("BiocManager")
-#   BiocManager::install("EBImage")
-#   BiocManager::install()
-#   remotes::install_github("r-spatial/sf")
+#   install.packages("BiocManager", force = TRUE)
+#   BiocManager::install("EBImage", force = TRUE)
+#   BiocManager::install("BiocGenerics", force = TRUE)
+#   BiocManager::install("BioConductor", force = TRUE)
+#   BiocManager::install(c("GenomicFeatures", "AnnotationDbi"))
+#   BiocManager::install(force = TRUE)
+#   remotes::install_github("r-spatial/sf", force = TRUE)
 # }
+# renv::restore()
 
 # load libraries
 library(dplyr)
