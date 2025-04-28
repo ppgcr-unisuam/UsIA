@@ -12,17 +12,18 @@ R.utils::copyDirectory(from = "favicon_io", to = file.path(dir.name, "favicon_io
 #   install.packages("BiocManager", force = TRUE)
 #   BiocManager::install("EBImage", force = TRUE)
 #   BiocManager::install("BiocGenerics", force = TRUE)
-#   BiocManager::install("BioConductor", force = TRUE)
 #   BiocManager::install(c("GenomicFeatures", "AnnotationDbi"))
 #   BiocManager::install(force = TRUE)
 #   remotes::install_github("r-spatial/sf", force = TRUE)
 # }
 
+options(repos = BiocManager::repositories())
 # load libraries
 library(dplyr)
 library(htmltools)
 library(BiocManager)
 library(EBImage)
+library(sf)
 
 # source all scripts
 source("f_border.R", local = TRUE)
