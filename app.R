@@ -17,7 +17,6 @@ R.utils::copyDirectory(from = "favicon_io", to = file.path(dir.name, "favicon_io
 #   BiocManager::install(force = TRUE)
 #   remotes::install_github("r-spatial/sf", force = TRUE)
 # }
-# renv::restore()
 
 # load libraries
 library(dplyr)
