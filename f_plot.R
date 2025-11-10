@@ -113,5 +113,7 @@ plot.trajectory <- function(res.dir, info) {
   title("Maximum of cross-correlation", outer = FALSE)
   
   # reset plot config
-  par(mfrow = c(1, 1))
+  local({
+    par(mfrow = c(1, 1))
+  })
 }

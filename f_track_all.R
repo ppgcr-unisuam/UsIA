@@ -380,7 +380,7 @@ f_all_frames <-
           }
           
           # store image as PNG file
-          grDevices::dev.off()
+          dev.off()
         }
         index <- index + 1
       }

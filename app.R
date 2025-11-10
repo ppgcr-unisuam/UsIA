@@ -1,6 +1,6 @@
 # create dir
 dir.name <- 'www'
-if (!dir.exists(dir.name)){
+if (!dir.exists(dir.name)) {
   dir.create(dir.name, recursive = TRUE, showWarnings = FALSE)
 }
 shiny::addResourcePath(prefix = "www", directoryPath = "www")
@@ -25,19 +25,16 @@ library(BiocManager)
 library(EBImage)
 library(sf)
 
-# source all scripts
-source("f_border.R", local = TRUE)
-source("f_meas.R", local = TRUE)
-source("f_process_color.R", local = TRUE)
-source("f_process_detrend.R", local = TRUE)
-source("f_process_equalization.R", local = TRUE)
-source("f_process_filter.R", local = TRUE)
-source("f_process_morphological.R", local = TRUE)
-source("f_process_threshold.R", local = TRUE)
-source("f_process_track.R", local = TRUE)
-source("f_track_all.R", local = TRUE)
-source("f_track_first.R", local = TRUE)
-source("us_track.R", local = TRUE)
+source("f_process_color.R")
+source("f_process_detrend.R")
+source("f_process_equalization.R")
+source("f_process_filter.R")
+source("f_process_morphological.R")
+source("f_process_threshold.R")
+source("f_process_track.R")
+source("f_track_all.R")
+source("f_track_first.R")
+source("us_track.R")
 
 # use this code to debug
 # rsconnect::showLogs()
@@ -153,70 +150,81 @@ ui <- shiny::fluidPage(
     ),
     shiny::tabPanel(
       title = list(fontawesome::fa("ruler"), "Measure"),
-      shiny::br(),
       shiny::tabsetPanel(
         id = "tabMeasure",
         type = "tabs",
-        shiny::tabPanel(
-          title = list(fontawesome::fa("image"), "Frame"),
-          shiny::br(),
-          # split two columns
-          shiny::fluidRow(
-            shiny::column(
-              4,
-              shiny::sliderInput(
-                inputId = "imgEdit",
-                label = "Frame",
-                min = 1,
-                max = 100,
-                value = 1,
-                step = 1,
-                ticks = FALSE,
-                animate = TRUE,
-                width = "100%"
-              ),
-              shiny::numericInput(
-                inputId = "imgScale",
-                label = "Scale (mm)",
-                value = 1,
-                min = 0.1,
-                max = 10,
-                step = 0.1,
-                width = "100%"
-              ),
-              shiny::br(),
-              shiny::actionButton(
-                inputId = "reset",
-                label = "Reset ROI",
-                width = "100%"),
-              shiny::br(),
-              htmltools::h5(htmltools::strong("Click"), " on plot to start. ", htmltools::strong("Move"), " the cursor to draw the ROI. ", htmltools::strong("Click"), " again to stop."),
-              shiny::br(),
-              align = "center"
+        # split two columns
+        shiny::fluidRow(
+          shiny::column(
+            4,
+            shiny::sliderInput(
+              inputId = "imgEdit",
+              label = "Frame",
+              min = 1,
+              max = 100,
+              value = 1,
+              step = 1,
+              ticks = FALSE,
+              animate = TRUE,
+              width = "100%"
             ),
-            shiny::column(
-              8,
-              shiny::plotOutput(
-                outputId = "plotMeasure",
-                width = "auto",
-                click = "img_click",
-                hover = shiny::hoverOpts(
-                  id = "hover",
-                  delay = 100,
-                  delayType = "throttle",
-                  clip = TRUE,
-                  nullOutside = TRUE
-                )
+            # split two columns
+            shiny::fluidRow(
+              shiny::column(
+                6,
+                shiny::tags$h5(shiny::tags$strong("Scale (mm)")),
+                shiny::numericInput(
+                  inputId = "imgScale",
+                  label = NULL,
+                  value = 1,
+                  min = 0.1,
+                  max = 10,
+                  step = 0.1,
+                  width = "100%"
+                ),
               ),
+              shiny::column(
+                6,
+                shiny::tags$h5(shiny::tags$strong("mm/px")),
+                shiny::verbatimTextOutput(
+                  outputId = "pixelsText",
+                  placeholder = TRUE
+                ),
+              ),
+            ),
+            shiny::br(),
+            shiny::actionButton(
+              inputId = "reset",
+              label = "Reset ROI",
+              width = "100%"
+            ),
+            shiny::br(),
+            htmltools::h5(
+              htmltools::strong("Click"),
+              " on plot to start. ",
+              htmltools::strong("Move"),
+              " the cursor to draw the ROI. ",
+              htmltools::strong("Click"),
+              " again to stop."
+            ),
+            shiny::br(),
+            align = "center"
+          ),
+          shiny::column(
+            8,
+            shiny::plotOutput(
+              outputId = "plotMeasure",
+              width = "auto",
+              click = "img_click",
+              hover = shiny::hoverOpts(
+                id = "hover",
+                delay = 100,
+                delayType = "throttle",
+                clip = TRUE,
+                nullOutside = TRUE
+              )
             ),
           ),
-          align = "center"
-        ),
-        shiny::tabPanel(
-          title = list(fontawesome::fa("table"), "Tables"),
-          shiny::br(),
-          DT::dataTableOutput("tableMeasure", width = "100%"),
-          align = "center"
         ),
       ),
     ),
@@ -358,7 +366,7 @@ ui <- shiny::fluidPage(
           ),
           shiny::br(),
           shiny::br(),
-          shiny::plotOutput("plotTrack",  width = "100%"),
+          shiny::plotOutput("plotTrack", width = "100%"),
           align = "center"
         ),
         shiny::tabPanel(
@@ -392,7 +400,9 @@ ui <- shiny::fluidPage(
     shiny::tabPanel(
       title = list(fontawesome::fa("people-group")),
       shiny::br(),
-      shiny::HTML("<a href=\"mailto:arthurde@souunisuam.com.br\">Arthur Ferreira, DSc</a>"),
+      shiny::HTML(
+        "<a href=\"mailto:arthurde@souunisuam.com.br\">Arthur Ferreira, DSc</a>"
+      ),
       shiny::HTML("<b> (Developer)</b>"),
       shiny::br(),
       shiny::br(),
@@ -423,10 +433,9 @@ ui <- shiny::fluidPage(
 
 # Define server script
 server <- function(input, output, session) {
-  
   # store plot click coords
   roi_coords <-
-    shiny::reactiveValues(xy = data.frame(x = c(1, 1),  y = c(1, 1)))
+    shiny::reactiveValues(xy = data.frame(x = c(1, 1), y = c(1, 1)))
   
   # observe plot click event ---------------------------------------------------------
   shiny::observeEvent(input$roi_click, {
@@ -454,10 +463,12 @@ server <- function(input, output, session) {
     vals$y <- NULL
   })
   
+  # global storage
+  glob <- shiny::reactiveValues(mm_per_pixel = NULL)
+  
   # change to tab under event ---------------------------------------------------------
   shiny::observeEvent(input[["buttAnalyze"]], {
-    shiny::updateTabsetPanel(inputId = "tabTrack",
-                             selected = "track")
+    shiny::updateTabsetPanel(inputId = "tabTrack", selected = "track")
   })
   
   # enable/disable filter
@@ -466,9 +477,7 @@ server <- function(input, output, session) {
   })
   
   # upload video ---------------------------------------------------------
-  values <- shiny::reactiveValues(
-    upload_state = NULL
-  )
+  values <- shiny::reactiveValues(upload_state = NULL)
   
   shiny::observeEvent(input$InputFile, {
     values$upload_state <- 'uploaded'
@@ -509,7 +518,8 @@ server <- function(input, output, session) {
     )
     
     # copy raw files to edit folder
-    R.utils::copyDirectory(file.path(dir.name, "0 raw"), file.path(dir.name, "1 edited"))
+    R.utils::copyDirectory(file.path(dir.name, "0 raw"),
+                           file.path(dir.name, "1 edited"))
     
     # copy and rename file
     file.copy(from = Video(),
@@ -612,12 +622,11 @@ server <- function(input, output, session) {
     
     # show 1st frame
     img <-
-      magick::image_read(
-        list.files(
-          path = file.path(dir.name, "1 edited"),
-          full.names = TRUE,
-          pattern = "png")[input$imgEdit]
-      )
+      magick::image_read(list.files(
+        path = file.path(dir.name, "1 edited"),
+        full.names = TRUE,
+        pattern = "png"
+      )[input$imgEdit])
     
     # color palette (grayscale)
     pal <- grDevices::gray(seq(
@@ -625,7 +634,12 @@ server <- function(input, output, session) {
       to = 1,
       length.out = 256
     ), alpha = NULL)
-    par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
+    par(
+      mar = rep(0, 4),
+      oma = rep(0, 4),
+      omi = rep(0, 4),
+      mai = rep(0, 4)
+    )
     plot(
       img,
       xlim = c(0, info$video$width),
@@ -634,145 +648,53 @@ server <- function(input, output, session) {
       col = pal
     )
     
-    # draw free-hand object
-    lines(
-      x = vals$x,
-      y = vals$y,
-      col = "red",
-      lty = "solid",
-      lwd = 2
-    )
+    # pontos válidos (sem NA)
+    valid_x <- vals$x[!is.na(vals$x)]
+    valid_y <- vals$y[!is.na(vals$y)]
+    
+    # somente desenhar se houver ao menos 2 pontos válidos
+    if (length(valid_x) >= 2 && length(valid_y) >= 2) {
+      lines(
+        x = c(valid_x[1], valid_x[1]), # força linha vertical
+        y = c(valid_y[1], valid_y[length(valid_y)]),
+        col = "red",
+        lty = "solid",
+        lwd = 2
+      )
+    }
   }, height = function() {
     (session$clientData$output_plotMeasure_width) * (0.6584)
   })
   
-  # measurements of single frame of video imgEdit ---------------------------------------------------------
-  output[["tableMeasure"]] <- DT::renderDataTable({
-    shiny::req(Video())
-    shiny::req(input$framesEdit)
-    shiny::req(input$imgEdit)
-    shiny::req(input$imgScale)
+  output[["pixelsText"]] <- renderText({
+    req(Video())  
+    req(input$imgScale)
+    req(vals$y)
     
-    # Get video info such as width, height, format, duration and framerate
-    info <- av::av_media_info(Video())
+    # precisa de ao menos 2 pontos válidos
+    if (length(vals$y) < 2 || all(is.na(vals$y))) {
+      return("Aguardando")
+    }
     
-    # show 1st frame
-    img <-
-      magick::image_read(
-        list.files(
-          path = file.path(dir.name, "1 edited"),
-          full.names = TRUE,
-          pattern = "png")[input$imgEdit]
-      )
+    # pontos válidos (antes do NA separador)
+    yvals <- vals$y[!is.na(vals$y)]
     
-    # get separate channels
-    img_object <- as.integer(img[[1]])
-    img_object_R <- img_object[, , 1]
-    img_object_G <- img_object[, , 2]
-    img_object_B <- img_object[, , 3]
+    if (length(yvals) < 2) {
+      return("Aguardando")
+    }
     
-    # flip image vertically
-    img_object_R <- img_object_R[nrow(img_object_R):1, ]
-    img_object_G <- img_object_G[nrow(img_object_G):1, ]
-    img_object_B <- img_object_B[nrow(img_object_B):1, ]
+    pixel_distance <- abs(yvals[1] - yvals[length(yvals)])
     
-    # create closed polygon
-    poly <- round(concaveman::concaveman(cbind(vals$x, vals$y), concavity = 1, length_threshold = 0), 0)
-    poly <- poly[complete.cases(poly), ]
+    if (pixel_distance <= 0) {
+      return("Movimentando")
+    }
     
-    # subset the image using polygon coordinates
-    img_object_R <- img_object_R[
-      min(poly[, 1]):max(poly[, 1]),
-      min(poly[, 2]):max(poly[, 2])
-    ]
-    img_object_G <- img_object_G[
-      min(poly[, 1]):max(poly[, 1]),
-      min(poly[, 2]):max(poly[, 2])
-    ]
-    img_object_B <- img_object_B[
-      min(poly[, 1]):max(poly[, 1]),
-      min(poly[, 2]):max(poly[, 2])
-    ]
+    mm_per_pixel <- input$imgScale / pixel_distance
+    glob$mm_per_pixel <- mm_per_pixel
     
-    # custom functions
-    source("f_meas.R", local = TRUE)
-    data <- f_measurement(R = img_object_R, G = img_object_G, B = img_object_B, poly = poly)
-    contour <- data$contour
-    
-    # draw actual ROI object
-    lines(
-      x = contour$x,
-      y = contour$y,
-      col = "red",
-      lty = "solid",
-      lwd = 2
-    )
-    
-    # distance
-    distancia <- 0
-    
-    # cross-sectional area
-    area <- distancia * distancia * pi
-    
-    # show measurements
-    df_meas <- data.frame(
-      "File name" = input$InputFile[1],
-      "Frames (n)" = info$video$frames,
-      "Start - End (frames)" = paste0(input$framesEdit[1], " - ", input$framesEdit[2]),
-      "Video size (px)" = paste0(info$video$width, " x ", info$video$height),
-      "Current frame (n)" = input$imgEdit[1],
-      "Object size (px)" = max(poly[, 1] - min(poly[, 1])) * max(poly[, 2] - min(poly[, 2])),
-      "Distance (mm)" = round(distancia, digits = 2),
-      "Cross-sectional area (mm²)" = round(area, digits = 2),
-      "Threshold (Otsu)" = data$threshold,
-      "Echogenicity, B&W (%)" = round(data$ecogenicidade_bw, digits = 2),
-      "Echogenicity, gray (%)" = round(data$ecogenicidade_gray, digits = 2)
-    )
-    df_meas <- t(df_meas)
-    
-    labels <-
-      c(
-        "File name",
-        "Frames (n)",
-        "Start - End (frames)",
-        "Video size (px)",
-        "Current frame (n)",
-        "Object size (px)",
-        "Distance (mm)",
-        "Cross-sectional area (mm²)",
-        "Threshold (Otsu)",
-        "Echogenicity, B&W (%)",
-        "Echogenicity, gray (%)"
-      )
-    rownames(df_meas) <-
-      labels
-    
-    # show DT table with buttons
-    DT::datatable(
-      df_meas,
-      rownames = TRUE,
-      colnames = rep("", ncol(df_meas)),
-      extensions = c("Buttons", "FixedColumns"),
-      options = list(
-        dom = "B",
-        ordering = F,
-        buttons = list(
-          list(extend = "copy",
-               text = "Copy"),
-          list(extend = "csv",
-               text = "CSV"),
-          list(extend = "excel",
-               text = "Excel"),
-          list(extend = "pdf",
-               text = "PDF")
-        ),
-        fixedColumns = TRUE,
-        pageLength = length(labels),
-        autoWidth = TRUE,
-        columnDefs = list(list(className = 'dt-center', targets = "_all"))
-      )
-    )
+    round(mm_per_pixel, 6)
   })
+  
   
   # show PNG file of 1st frame ---------------------------------------------------------
   output[["plotROI"]] <- shiny::renderPlot({
@@ -784,12 +706,11 @@ server <- function(input, output, session) {
     
     # show 1st frame
     img <-
-      magick::image_read(
-        list.files(
-          path = file.path(dir.name, "1 edited"),
-          full.names = TRUE,
-          pattern = "png")[1]
-      )
+      magick::image_read(list.files(
+        path = file.path(dir.name, "1 edited"),
+        full.names = TRUE,
+        pattern = "png"
+      )[1])
     
     # color palette (grayscale)
     pal <- grDevices::gray(seq(
@@ -797,7 +718,12 @@ server <- function(input, output, session) {
       to = 1,
       length.out = 256
     ), alpha = NULL)
-    par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
+    par(
+      mar = rep(0, 4),
+      oma = rep(0, 4),
+      omi = rep(0, 4),
+      mai = rep(0, 4)
+    )
     plot(
       img,
       xlim = c(0, info$video$width),
@@ -875,11 +801,18 @@ server <- function(input, output, session) {
       read.csv(file.path(dir.name, "CSV", "trajectory_measured.csv"))
     for (i in 1:length(list.files(file.path(dir.name, "8 output")))) {
       # read image from file
-      img <- png::readPNG(file.path(dir.name, "8 output", paste0("image_", sprintf("%06d", i), ".png")))
+      img <- png::readPNG(file.path(dir.name, "8 output", paste0(
+        "image_", sprintf("%06d", i), ".png"
+      )))
       img <- grDevices::as.raster(img[, , 1:3])
       
       # create a ggplot object with the image in background and trajectory as data points
-      par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
+      par(
+        mar = rep(0, 4),
+        oma = rep(0, 4),
+        omi = rep(0, 4),
+        mai = rep(0, 4)
+      )
       ggplot2::ggplot() +
         ggplot2::annotation_raster(
           img,
@@ -890,7 +823,7 @@ server <- function(input, output, session) {
           interpolate = TRUE
         ) +
         ggplot2::geom_point(
-          data = path[1:i,],
+          data = path[1:i, ],
           ggplot2::aes(x = X, y = Y),
           colour = "red",
           size = 100
@@ -904,7 +837,9 @@ server <- function(input, output, session) {
       
       # save ggplot as png
       ggplot2::ggsave(
-        filename = file.path(dir.name, "8 output", paste0("image_", sprintf("%06d", i), ".png")),
+        filename = file.path(dir.name, "8 output", paste0(
+          "image_", sprintf("%06d", i), ".png"
+        )),
         width = info$video$width,
         height = info$video$height,
         units = "px",
@@ -1018,8 +953,7 @@ server <- function(input, output, session) {
     
     source("f_plot.R", local = TRUE)
     img <- htmltools::capturePlot({
-      plot.trajectory(res.dir = file.path(dir.name, "CSV"),
-                      info = info)
+      plot.trajectory(res.dir = file.path(dir.name, "CSV"), info = info)
     }, height = 500, width = 500)
     list(
       src = img,
@@ -1067,19 +1001,17 @@ server <- function(input, output, session) {
         dom = "B",
         ordering = F,
         buttons = list(
-          list(extend = "copy",
-               text = "Copy"),
-          list(extend = "csv",
-               text = "CSV"),
-          list(extend = "excel",
-               text = "Excel"),
-          list(extend = "pdf",
-               text = "PDF")
+          list(extend = "copy", text = "Copy"),
+          list(extend = "csv", text = "CSV"),
+          list(extend = "excel", text = "Excel"),
+          list(extend = "pdf", text = "PDF")
         ),
         fixedColumns = TRUE,
         pageLength = length(labels),
         autoWidth = TRUE,
-        columnDefs = list(list(className = 'dt-center', targets = "_all"))
+        columnDefs = list(list(
+          className = 'dt-center', targets = "_all"
+        ))
       )
     )
   })
@@ -1134,7 +1066,6 @@ server <- function(input, output, session) {
   
   # restart button ---------------------------------------------------------
   shinyjs::onclick("restart", {
-    
     # clean InputFile
     shinyjs::reset("InputFile")
     

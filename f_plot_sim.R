@@ -124,5 +124,7 @@ plot.trajectory <- function(res.dir, info) {
   )
   title("Trajectory of the object", outer = FALSE)
   # reset plot config
-  par(mfrow = c(1, 1))
+  local({
+    par(mfrow = c(1, 1))
+  })
 }
