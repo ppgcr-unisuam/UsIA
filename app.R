@@ -6,7 +6,9 @@ if (!dir.exists(dir.name)) {
 shiny::addResourcePath(prefix = "www", directoryPath = "www")
 
 # copy favicon folder to the www dir
-R.utils::copyDirectory(from = "favicon_io", to = file.path(dir.name, "favicon_io"))
+if (dir.exists("favicon_io")) {
+  R.utils::copyDirectory("favicon_io", file.path(dir.name, "favicon_io"))
+}
 
 # if (!require("BiocManager", quietly = TRUE)){
 #   install.packages("BiocManager", force = TRUE)
@@ -149,81 +151,78 @@ ui <- shiny::fluidPage(
       ),
     ),
     shiny::tabPanel(
-      title = list(fontawesome::fa("ruler"), "Measure"),
-      shiny::tabsetPanel(
-        id = "tabMeasure",
-        type = "tabs",
-        # split two columns
-        shiny::fluidRow(
-          shiny::column(
-            4,
-            shiny::sliderInput(
-              inputId = "imgEdit",
-              label = "Frame",
-              min = 1,
-              max = 100,
-              value = 1,
-              step = 1,
-              ticks = FALSE,
-              animate = TRUE,
-              width = "100%"
-            ),
-            # split two columns
-            shiny::fluidRow(
-              shiny::column(
-                6,
-                shiny::tags$h5(shiny::tags$strong("Scale (mm)")),
-                shiny::numericInput(
-                  inputId = "imgScale",
-                  label = NULL,
-                  value = 1,
-                  min = 0.1,
-                  max = 10,
-                  step = 0.1,
-                  width = "100%"
-                ),
-              ),
-              shiny::column(
-                6,
-                shiny::tags$h5(shiny::tags$strong("mm/px")),
-                shiny::verbatimTextOutput(
-                  outputId = "pixelsText",
-                  placeholder = TRUE
-                ),
-              ),
-            ),
-            shiny::br(),
-            shiny::actionButton(
-              inputId = "reset",
-              label = "Reset ROI",
-              width = "100%"
-            ),
-            shiny::br(),
-            htmltools::h5(
-              htmltools::strong("Click"),
-              " on plot to start. ",
-              htmltools::strong("Move"),
-              " the cursor to draw the ROI. ",
-              htmltools::strong("Click"),
-              " again to stop."
-            ),
-            shiny::br(),
-            align = "center"
+      title = list(fontawesome::fa("ruler"), "Calibrate"),
+      # split two columns
+      shiny::br(),
+      shiny::fluidRow(
+        shiny::column(
+          4,
+          shiny::sliderInput(
+            inputId = "imgEdit",
+            label = "Frame",
+            min = 1,
+            max = 100,
+            value = 1,
+            step = 1,
+            ticks = FALSE,
+            animate = TRUE,
+            width = "100%"
           ),
-          shiny::column(
-            8,
-            shiny::plotOutput(
-              outputId = "plotMeasure",
-              width = "auto",
-              click = "img_click",
-              hover = shiny::hoverOpts(
-                id = "hover",
-                delay = 100,
-                delayType = "throttle",
-                clip = TRUE,
-                nullOutside = TRUE
-              )
+          # split two columns
+          shiny::fluidRow(
+            shiny::column(
+              6,
+              shiny::tags$h5(shiny::tags$strong("Scale (mm)")),
+              shiny::numericInput(
+                inputId = "imgScale",
+                label = NULL,
+                value = 1,
+                min = 0.1,
+                max = 10,
+                step = 0.1,
+                width = "100%"
+              ),
             ),
+            shiny::column(
+              6,
+              shiny::tags$h5(shiny::tags$strong("Factor (mm/px)")),
+              shiny::verbatimTextOutput(
+                outputId = "pixelsText",
+                placeholder = TRUE
+              ),
+            ),
+          ),
+          shiny::br(),
+          shiny::actionButton(
+            inputId = "reset",
+            label = "Reset ROI",
+            width = "100%"
+          ),
+          shiny::br(),
+          htmltools::h5(
+            htmltools::strong("Click"),
+            " on plot to start. ",
+            htmltools::strong("Move"),
+            " the cursor to draw the ROI. ",
+            htmltools::strong("Click"),
+            " again to stop."
+          ),
+          shiny::br(),
+          align = "center"
+        ),
+        shiny::column(
+          8,
+          shiny::plotOutput(
+            outputId = "plotMeasure",
+            width = "auto",
+            click = "img_click",
+            hover = shiny::hoverOpts(
+              id = "hover",
+              delay = 100,
+              delayType = "throttle",
+              clip = TRUE,
+              nullOutside = TRUE
+            )
           ),
         ),
       ),
@@ -433,18 +432,26 @@ ui <- shiny::fluidPage(
 
 # Define server script
 server <- function(input, output, session) {
+  
+  # clean environment on session end
+  session$onSessionEnded(function() {
+    rm(list = ls())
+    gc()
+  })
+  
   # store plot click coords
   roi_coords <-
     shiny::reactiveValues(xy = data.frame(x = c(1, 1), y = c(1, 1)))
   
   # observe plot click event ---------------------------------------------------------
   shiny::observeEvent(input$roi_click, {
+    shiny::req(input$roi_click$x, input$roi_click$y)
     roi_coords$xy[2, ] <- round(c(input$roi_click$x, input$roi_click$y), digits = 0)
   })
   # free-hand drawing
   vals = shiny::reactiveValues(x = NULL, y = NULL)
   draw = shiny::reactiveVal(FALSE)
-  shiny::observeEvent(input$img_click, handlerExpr = {
+  shiny::observeEvent(input$img_click, {
     temp <- draw()
     draw(!temp)
     if (!draw()) {
@@ -458,13 +465,14 @@ server <- function(input, output, session) {
       vals$y <- c(vals$y, input$hover$y)
     }
   })
-  shiny::observeEvent(input$reset, handlerExpr = {
+  shiny::observeEvent(input$reset, {
     vals$x <- NULL
     vals$y <- NULL
+    calib_factor$mm_per_pixel <- 1
   })
   
   # global storage
-  glob <- shiny::reactiveValues(mm_per_pixel = NULL)
+  calib_factor <- shiny::reactiveValues(mm_per_pixel = 1)
   
   # change to tab under event ---------------------------------------------------------
   shiny::observeEvent(input[["buttAnalyze"]], {
@@ -477,24 +485,24 @@ server <- function(input, output, session) {
   })
   
   # upload video ---------------------------------------------------------
-  values <- shiny::reactiveValues(upload_state = NULL)
+  # Holds the current video path
+  Video <- shiny::reactiveVal(NULL)
   
+  # When a new video is uploaded
   shiny::observeEvent(input$InputFile, {
-    values$upload_state <- 'uploaded'
+    shiny::req(input$InputFile)
+    Video(input$InputFile$datapath)   # ✅ overwrite old video
   })
   
+  # When restart is clicked
   shiny::observeEvent(input$restart, {
-    values$upload_state <- 'restart'
+    Video(NULL)                       # ✅ clear memory
+    shinyjs::reset("InputFile")       # ✅ clear UI file input
   })
   
-  Video <- shiny::reactive({
-    if (is.null(values$upload_state)) {
-      return(NULL)
-    } else if (values$upload_state == 'uploaded') {
-      return(input[["InputFile"]][["datapath"]])
-    } else if (values$upload_state == 'restart') {
-      return(NULL)
-    }
+  # For debugging – shows current video path
+  output$path <- shiny::renderPrint({
+    Video()
   })
   
   # play uploaded video ---------------------------------------------------------
@@ -552,7 +560,10 @@ server <- function(input, output, session) {
       width = "90%",
       height = "90%",
       controls = "",
-      tags$source(src = "rawvideo.mp4", type = "video/mp4")
+      tags$source(
+        src = paste0("www/rawvideo.mp4?nocache=", as.numeric(Sys.time())),
+        type = "video/mp4"
+      )
     )
   })
   
@@ -604,11 +615,9 @@ server <- function(input, output, session) {
     )
     
     # show video
-    tags$video(
-      width = "90%",
-      height = "90%",
-      controls = "",
-      tags$source(src = "editedvideo.mp4", type = "video/mp4")
+    tags$source(
+      src = paste0("www/editedvideo.mp4?nocache=", as.numeric(Sys.time())),
+      type = "video/mp4"
     )
   })
   
@@ -666,7 +675,7 @@ server <- function(input, output, session) {
     (session$clientData$output_plotMeasure_width) * (0.6584)
   })
   
-  output[["pixelsText"]] <- renderText({
+  output[["pixelsText"]] <- shiny::renderText({
     req(Video())  
     req(input$imgScale)
     req(vals$y)
@@ -690,11 +699,8 @@ server <- function(input, output, session) {
     }
     
     mm_per_pixel <- input$imgScale / pixel_distance
-    glob$mm_per_pixel <- mm_per_pixel
-    
-    round(mm_per_pixel, 6)
+    calib_factor$mm_per_pixel <- round(mm_per_pixel, 6)
   })
-  
   
   # show PNG file of 1st frame ---------------------------------------------------------
   output[["plotROI"]] <- shiny::renderPlot({
@@ -868,11 +874,9 @@ server <- function(input, output, session) {
     info <- av::av_media_info(Video())
     
     # show video
-    tags$video(
-      width = "90%",
-      height = "90%",
-      controls = "",
-      tags$source(src = "outputvideo.mp4", type = "video/mp4")
+    tags$source(
+      src = paste0("www/outputvideo.mp4?nocache=", as.numeric(Sys.time())),
+      type = "video/mp4"
     )
   })
   
@@ -882,11 +886,19 @@ server <- function(input, output, session) {
     )) &
     file.exists(file.path(dir.name, "CSV", "displacement.csv"))) {
       info <- av::av_media_info(Video())
+      
+      # calibrate files
+      calib_displacement <-
+        read.csv(file.path(dir.name, "CSV", "displacement.csv")) * calib_factor$mm_per_pixel
+      calib_trajectory <-
+        read.csv(file.path(dir.name, "CSV", "trajectory_measured.csv")) * calib_factor$mm_per_pixel
+      
       data.frame(
         "File name" = input$InputFile[1],
         "Frames (n)" = info$video$frames,
         "Start - End (frames)" = paste0(input$framesEdit[1], " - ", input$framesEdit[2]),
         "Video size (px)" = paste0(info$video$width, " x ", info$video$height),
+        "Calibration (mm/px)" = round(calib_factor$mm_per_pixel, 6),
         "X0 (px)" = round(roi_coords$xy[2, 1], 0),
         "Y0 (px)" = round(roi_coords$xy[2, 2], 0),
         "Object size (px)" = input$KernelSizeTrack,
@@ -894,22 +906,14 @@ server <- function(input, output, session) {
         "Filter size (px)" = input$FilterSize,
         "Overlap (%)" = input$Overlap,
         "Jump (frames)" = input$Jump,
-        "Displacement, total (px)" = round(sum(read.csv(
-          file.path(dir.name, "CSV", "displacement.csv")
-        )[[1]], na.rm = TRUE), 0),
-        "Displacement, mean (px)" = round(mean(read.csv(
-          file.path(dir.name, "CSV", "displacement.csv")
-        )[[1]], na.rm = TRUE), 0),
-        "Speed, mean (px/frame)" = round(mean(abs(
-          diff(read.csv(
-            file.path(dir.name, "CSV", "displacement.csv")
-          )[[1]], differences = 1)
-        ), na.rm = TRUE), 3),
-        "Speed, max (px/frame)" = round(max(abs(
-          diff(read.csv(
-            file.path(dir.name, "CSV", "displacement.csv")
-          )[[1]], differences = 1)
-        ), na.rm = TRUE), 3),
+        "Displacement, total (px)" = round(sum(calib_displacement[[1]], na.rm = TRUE), 3),
+        "Displacement, mean (mm)" = round(mean(calib_displacement[[1]], na.rm = TRUE), 3),
+        "Speed, mean (mm/frame)" = round(mean(
+          (diff(calib_trajectory[[1]], differences = 1)^2 + diff(calib_trajectory[[2]], differences = 1)^2)^0.5,
+          na.rm = TRUE), 3),
+        "Speed, max (mm/frame)" = round(max(
+          (diff(calib_trajectory[[1]], differences = 1)^2 + diff(calib_trajectory[[2]], differences = 1)^2)^0.5,
+          na.rm = TRUE), 3),
         "Cross-correlation, max" = round(max(read.csv(
           file.path(dir.name, "CSV", "max_cross_correlation.csv")
         )[[1]], na.rm = TRUE), 3),
@@ -927,6 +931,7 @@ server <- function(input, output, session) {
         "Frames (n)" = info$video$frames,
         "Start - End (frames)" = paste0(input$framesEdit[1], " - ", input$framesEdit[2]),
         "Video size (px)" = paste0(info$video$width, " x ", info$video$height),
+        "Calibration (mm/px)" = round(calib_factor$mm_per_pixel, 6),
         "X0 (px)" = round(roi_coords$xy[2, 1], 0),
         "Y0 (px)" = round(roi_coords$xy[2, 2], 0),
         "Object size (px)" = input$KernelSizeTrack,
@@ -934,10 +939,10 @@ server <- function(input, output, session) {
         "Filter size (px)" = input$FilterSize,
         "Overlap (%)" = input$Overlap,
         "Jump (frames)" = input$Jump,
-        "Displacement, total (px)" = NA,
-        "Displacement, mean (px)" = NA,
-        "Speed, mean (px/frame)" = NA,
-        "Speed, max (px/frame)" = NA,
+        "Displacement, total (mm)" = NA,
+        "Displacement, mean (mm)" = NA,
+        "Speed, mean (mm/frame)" = NA,
+        "Speed, max (mm/frame)" = NA,
         "Cross-correlation, max" = NA,
         "Cross-correlation, mean" = NA,
         "Cross-correlation, min" = NA
@@ -953,7 +958,7 @@ server <- function(input, output, session) {
     
     source("f_plot.R", local = TRUE)
     img <- htmltools::capturePlot({
-      plot.trajectory(res.dir = file.path(dir.name, "CSV"), info = info)
+      plot.trajectory(res.dir = file.path(dir.name, "CSV"), info = info, calib_factor = calib_factor$mm_per_pixel)
     }, height = 500, width = 500)
     list(
       src = img,
@@ -962,6 +967,7 @@ server <- function(input, output, session) {
       contentType = "image/png"
     )
   }, deleteFile = TRUE)
+  options(shiny.image.cache = TRUE)
   
   # show datatable of results ---------------------------------------------------------
   output[["tableTrack"]] <- DT::renderDataTable({
@@ -974,6 +980,7 @@ server <- function(input, output, session) {
         "Frames (n)",
         "Start - End (frames)",
         "Video size (px)",
+        "Calibration (mm/px)",
         "X0 (px)",
         "Y0 (px)",
         "Object size (px)",
@@ -981,10 +988,10 @@ server <- function(input, output, session) {
         "Filter size (px)",
         "Overlap (%)",
         "Jump (frames)",
-        "Displacement, total (px)",
-        "Displacement, mean (px)",
-        "Speed, mean (px/frame)",
-        "Speed, max (px/frame)",
+        "Displacement, total (mm)",
+        "Displacement, mean (mm)",
+        "Speed, mean (mm/frame)",
+        "Speed, max (mm/frame)",
         "Cross-correlation, max",
         "Cross-correlation, mean",
         "Cross-correlation, min"
@@ -1098,10 +1105,10 @@ server <- function(input, output, session) {
       )
     )
   })
-  shiny::outputOptions(output, "downloadMP4", suspendWhenHidden = FALSE)
-  shiny::outputOptions(output, "downloadPATH", suspendWhenHidden = FALSE)
-  shiny::outputOptions(output, "downloadDISPL", suspendWhenHidden = FALSE)
-  shiny::outputOptions(output, "downloadCC", suspendWhenHidden = FALSE)
+  lapply(
+    c("downloadMP4", "downloadPATH", "downloadDISPL", "downloadCC"),
+    function(id) outputOptions(output, id, suspendWhenHidden = FALSE)
+  )
 }
 
 # Run the application
