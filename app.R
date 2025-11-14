@@ -614,10 +614,16 @@ server <- function(input, output, session) {
       ))
     )
     
-    # show video
-    tags$source(
-      src = paste0("www/editedvideo.mp4?nocache=", as.numeric(Sys.time())),
-      type = "video/mp4"
+    # show edited video
+    tags$video(
+      width = "90%",
+      height = "90%",
+      controls = NA,
+      autoplay = NA,
+      tags$source(
+        src = paste0("www/editedvideo.mp4?nocache=", as.numeric(Sys.time())),
+        type = "video/mp4"
+      )
     )
   })
   
