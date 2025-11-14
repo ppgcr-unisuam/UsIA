@@ -78,7 +78,6 @@ us_track <- function(center.ini = NULL,
   
   run_all <- f_all_frames(
     inputfile = inputfile,
-    info = info,
     param = param,
     track.by = "cross-correlation",
     raw.dir = raw.dir,
@@ -95,7 +94,10 @@ us_track <- function(center.ini = NULL,
     roi = roi,
     center.ini = center.ini,
     plot.border = FALSE,
-    dsp = c("gray", "equalize", "mean", "threshold", "morphologic")
+    dsp = c("gray", "equalize", "mean", "threshold", "morphologic"),
+    show.plot = FALSE,
+    save.plot = TRUE,
+    info = info
   )
   
   # ============================================================

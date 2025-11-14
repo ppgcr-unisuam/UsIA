@@ -5,7 +5,7 @@ account: sciencer
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 10849531
-bundleId: 11180346
+bundleId: 11180390
 url: https://sciencer.shinyapps.io/UsIA/
 version: 1
 asMultiple: FALSE

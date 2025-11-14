@@ -559,7 +559,8 @@ server <- function(input, output, session) {
     tags$video(
       width = "90%",
       height = "90%",
-      controls = "",
+      controls = NA,
+      autoplay = NA,
       tags$source(
         src = paste0("www/rawvideo.mp4?nocache=", as.numeric(Sys.time())),
         type = "video/mp4"
@@ -876,13 +877,16 @@ server <- function(input, output, session) {
   # show MP4 video of output file
   output[["videooutput"]] <- shiny::renderUI({
     shiny::req(Video())
-    # Get video info such as width, height, format, duration and framerate
-    info <- av::av_media_info(Video())
-    
-    # show video
-    tags$source(
-      src = paste0("www/outputvideo.mp4?nocache=", as.numeric(Sys.time())),
-      type = "video/mp4"
+    # show output video
+    tags$video(
+      width = "90%",
+      height = "90%",
+      controls = NA,
+      autoplay = NA,
+      tags$source(
+        src = paste0("www/outputvideo.mp4?nocache=", as.numeric(Sys.time())),
+        type = "video/mp4"
+      )
     )
   })
   

@@ -1,5 +1,4 @@
 f_all_frames <- function(inputfile,
-                         info,
                          param,
                          track.by,
                          raw.dir,
@@ -16,7 +15,10 @@ f_all_frames <- function(inputfile,
                          roi,
                          center.ini,
                          plot.border,
-                         dsp) {
+                         dsp,
+                         show.plot,
+                         save.plot,
+                         info) {
   
   # ---------------------------------------------------------------
   # Pre-load external processing functions (MUCH faster)
@@ -42,26 +44,24 @@ f_all_frames <- function(inputfile,
   # ---------------------------------------------------------------
   apply_preprocessing <- function(frame) {
     f <- frame
-    
     if ("gray" %in% dsp) {
-      f <- f_color_conversion(f, pal, gray.dir, FALSE, FALSE)
+      f <- f_color_conversion(f, pal, gray.dir, show.plot = FALSE, save.plot = FALSE, info)
     }
     if ("detrend" %in% dsp) {
-      f <- f_spatial_detrend(f, pal, detrend.dir, FALSE, FALSE)
+      f <- f_spatial_detrend(f, pal, detrend.dir, show.plot = FALSE, save.plot = FALSE, info)
     }
     if ("equalize" %in% dsp) {
-      f <- f_equalize(f, pal, hist.dir, FALSE, FALSE)
+      f <- f_equalize(f, pal, hist.dir, show.plot = FALSE, save.plot = FALSE, info)
     }
     if ("filter" %in% dsp) {
-      f <- f_spatial_filter(f, param, pal, filter.dir, FALSE, FALSE)
+      f <- f_spatial_filter(f, param, pal, filter.dir, show.plot = FALSE, save.plot = FALSE, info)
     }
     if ("threshold" %in% dsp) {
-      f <- f_threshold(f, pal, bin.dir, FALSE, FALSE)
+      f <- f_threshold(f, pal, bin.dir, show.plot = FALSE, save.plot = FALSE, info)
     }
     if ("morphologic" %in% dsp) {
-      f <- f_morphologic(f, pal, morph.dir, FALSE, FALSE)
+      f <- f_morphologic(f, pal, morph.dir, show.plot = FALSE, save.plot = FALSE, info)
     }
-    
     return(f)
   }
   
@@ -122,7 +122,6 @@ f_all_frames <- function(inputfile,
       if (i == 1) {
         
         run_1st <- f_first_frame(
-          info = info,
           inputfile = inputfile,
           raw.dir = raw.dir,
           gray.dir = gray.dir,
@@ -138,7 +137,10 @@ f_all_frames <- function(inputfile,
           roi = roi,
           center.ini = center.ini,
           plot.border = plot.border,
-          dsp = dsp
+          dsp = dsp,
+          show.plot = show.plot,
+          save.plot = save.plot,
+          info = info
         )
         
         center <- run_1st$center
@@ -260,5 +262,4 @@ f_all_frames <- function(inputfile,
     trajectory = trajectory,
     max.crosscorrelation = max.crosscorrel
   ))
-  
 }
