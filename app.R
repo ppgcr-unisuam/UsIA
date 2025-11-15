@@ -44,13 +44,13 @@ source("us_track.R")
 ui <- shiny::fluidPage(
   # add favicon
   shiny::tags$head(
-    shiny::tags$link(rel = "shortcut icon", href = "/www/favicon_io/favicon.ico"),
-    shiny::tags$link(rel = "shortcut icon", href = "/www/favicon_io/android-chrome-192x192.png"),
-    shiny::tags$link(rel = "shortcut icon", href = "/www/favicon_io/android-chrome-512x512.png"),
-    shiny::tags$link(rel = "apple-touch-icon", href = "/www/favicon_io/apple-touch-icon.png"),
-    shiny::tags$link(rel = "icon", href = "/www/favicon_io/favicon-16x16.png"),
-    shiny::tags$link(rel = "icon", href = "/www/favicon_io/favicon-32x32.png"),
-    shiny::tags$link(rel = "shortcut icon", href = "/www/favicon_io/favicon.ico"),
+    shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/favicon.ico"),
+    shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/android-chrome-192x192.png"),
+    shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/android-chrome-512x512.png"),
+    shiny::tags$link(rel = "apple-touch-icon", href = "www/favicon_io/apple-touch-icon.png"),
+    shiny::tags$link(rel = "icon", href = "www/favicon_io/favicon-16x16.png"),
+    shiny::tags$link(rel = "icon", href = "www/favicon_io/favicon-32x32.png"),
+    shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/favicon.ico"),
   ),
   
   # add font awesome
@@ -562,7 +562,7 @@ server <- function(input, output, session) {
       controls = NA,
       autoplay = NA,
       tags$source(
-        src = paste0("/www/rawvideo.mp4?nocache=", as.numeric(Sys.time())),
+        src = paste0("www/rawvideo.mp4?nocache=", as.numeric(Sys.time())),
         type = "video/mp4"
       )
     )
@@ -622,7 +622,7 @@ server <- function(input, output, session) {
       controls = NA,
       autoplay = NA,
       tags$source(
-        src = paste0("/www/editedvideo.mp4?nocache=", as.numeric(Sys.time())),
+        src = paste0("www/editedvideo.mp4?nocache=", as.numeric(Sys.time())),
         type = "video/mp4"
       )
     )
@@ -884,7 +884,7 @@ server <- function(input, output, session) {
       controls = NA,
       autoplay = NA,
       tags$source(
-        src = paste0("/www/outputvideo.mp4?nocache=", as.numeric(Sys.time())),
+        src = paste0("www/outputvideo.mp4?nocache=", as.numeric(Sys.time())),
         type = "video/mp4"
       )
     )

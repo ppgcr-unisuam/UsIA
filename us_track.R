@@ -20,7 +20,6 @@ us_track <- function(center.ini = NULL,
   make_clean_dir <- function(path) {
     if (dir.exists(path)) unlink(path, recursive = TRUE)
     dir.create(path, showWarnings = FALSE, recursive = TRUE)
-    shiny::addResourcePath(prefix = "www", directoryPath = path)
   }
   
   # ============================================================
