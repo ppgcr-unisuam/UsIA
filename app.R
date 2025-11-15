@@ -41,346 +41,347 @@ source("us_track.R")
 # use this code to debug
 # rsconnect::showLogs()
 
-ui <- shiny::fluidPage(
-  # add favicon
-  shiny::tags$head(
-    shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/favicon.ico"),
-    shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/android-chrome-192x192.png"),
-    shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/android-chrome-512x512.png"),
-    shiny::tags$link(rel = "apple-touch-icon", href = "www/favicon_io/apple-touch-icon.png"),
-    shiny::tags$link(rel = "icon", href = "www/favicon_io/favicon-16x16.png"),
-    shiny::tags$link(rel = "icon", href = "www/favicon_io/favicon-32x32.png"),
-    shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/favicon.ico"),
-  ),
-  
-  # add font awesome
-  tags$head(
-    tags$link(rel = "stylesheet", href = "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css")
-  ),
-  
-  # use shinythemes
-  theme = shinythemes::shinytheme("flatly"),
-  
-  # use shinyjs
-  shinyjs::useShinyjs(),
-  
-  # status bar
-  shinybusy::add_busy_bar(color = "#FF0000"),
-  
-  # Application title
-  shiny::titlePanel(
-    shiny::fluidRow(
-      shiny::column(
-        8,
-        list(
-          fontawesome::fa("wifi"),
-          shiny::HTML("<strong>UsIA</strong>"),
-          shiny::br(),
-          "Ultrasound Image Analysis"
-        ),
-        style = "text-align:left;"
-      ),
-      shiny::column(
-        4,
-        tags$a(
-          id = "restart",
-          class = "btn btn-primary",
-          href = "javascript:history.go(0)",
-          shiny::HTML('<i class="fa fa-refresh fa-1x"></i>'),
-          title = "restart",
-          style = "color:white; border-color:white; border-radius:100%"
-        ),
-        style = "text-align:right;"
-      )
+ui <- function(req) {
+  shiny::fluidPage(
+    # add favicon
+    shiny::tags$head(
+      shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/favicon.ico"),
+      shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/android-chrome-192x192.png"),
+      shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/android-chrome-512x512.png"),
+      shiny::tags$link(rel = "apple-touch-icon", href = "www/favicon_io/apple-touch-icon.png"),
+      shiny::tags$link(rel = "icon", href = "www/favicon_io/favicon-16x16.png"),
+      shiny::tags$link(rel = "icon", href = "www/favicon_io/favicon-32x32.png"),
+      shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/favicon.ico"),
     ),
-    windowTitle = "UsIA | Ultrasound Image Analysis"
-  ),
-  
-  shiny::HTML(
-    "<a href=\"https://doi.org/10.5281/zenodo.10439718\" style=\"vertical-align:middle;\"><img src=\"https://zenodo.org/badge/DOI/10.5281/zenodo.10439718.svg\" alt=\"DOI\"  style=\"vertical-align:top;\"></a>"
-  ),
-  shiny::br(),
-  shiny::br(),
-  
-  # change color of fileInput button
-  tags$head(tags$style(
-    shiny::HTML(".btn-file {background-color: #2C3E50;}")
-  )),
-  
-  # Main panel for displaying outputs ----
-  shiny::tabsetPanel(
-    id = "tabs",
-    type = "tabs",
-    shiny::tabPanel(
-      title = list(fontawesome::fa("right-to-bracket"), "Input"),
-      shiny::br(),
-      shiny::fileInput(
-        inputId = "InputFile",
-        label = NULL,
-        multiple = FALSE,
-        buttonLabel = list(fontawesome::fa("file-video"), "Upload"),
-        accept = c(".mp4"),
-        width = "100%",
-      ),
-      shiny::tabsetPanel(
-        id = "tabInput",
-        type = "tabs",
-        shiny::tabPanel(
-          title = list(fontawesome::fa("video"), "Video"),
-          shiny::br(),
-          shiny::uiOutput(outputId = "videoraw"),
-          align = "center"
-        ),
-        shiny::tabPanel(
-          title = list(fontawesome::fa("edit"), "Edit"),
-          shiny::br(),
-          shiny::sliderInput(
-            inputId = "framesEdit",
-            label = NULL,
-            min = 1,
-            max = 100,
-            value = c(1, 100),
-            step = 1,
-            ticks = FALSE,
-            animate = TRUE,
-            width = "100%"
-          ),
-          shiny::uiOutput(outputId = "videoedit"),
-          align = "center"
-        ),
-      ),
+    
+    # add font awesome
+    tags$head(
+      tags$link(rel = "stylesheet", href = "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css")
     ),
-    shiny::tabPanel(
-      title = list(fontawesome::fa("ruler"), "Calibrate"),
-      # split two columns
-      shiny::br(),
+    
+    # use shinythemes
+    theme = shinythemes::shinytheme("flatly"),
+    
+    # use shinyjs
+    shinyjs::useShinyjs(),
+    
+    # status bar
+    shinybusy::add_busy_bar(color = "#FF0000"),
+    
+    # Application title
+    shiny::titlePanel(
       shiny::fluidRow(
         shiny::column(
-          4,
-          shiny::sliderInput(
-            inputId = "imgEdit",
-            label = "Frame",
-            min = 1,
-            max = 100,
-            value = 1,
-            step = 1,
-            ticks = FALSE,
-            animate = TRUE,
-            width = "100%"
+          8,
+          list(
+            fontawesome::fa("wifi"),
+            shiny::HTML("<strong>UsIA</strong>"),
+            shiny::br(),
+            "Ultrasound Image Analysis"
           ),
-          # split two columns
-          shiny::fluidRow(
-            shiny::column(
-              6,
-              shiny::tags$h5(shiny::tags$strong("Scale (mm)")),
-              shiny::numericInput(
-                inputId = "imgScale",
-                label = NULL,
-                value = 1,
-                min = 0.1,
-                max = 10,
-                step = 0.1,
-                width = "100%"
-              ),
-            ),
-            shiny::column(
-              6,
-              shiny::tags$h5(shiny::tags$strong("Factor (mm/px)")),
-              shiny::verbatimTextOutput(
-                outputId = "pixelsText",
-                placeholder = TRUE
-              ),
-            ),
-          ),
-          shiny::br(),
-          shiny::actionButton(
-            inputId = "reset",
-            label = "Reset ROI",
-            width = "100%"
-          ),
-          shiny::br(),
-          htmltools::h5(
-            htmltools::strong("Click"),
-            " on plot to start. ",
-            htmltools::strong("Move"),
-            " the cursor to draw the ROI. ",
-            htmltools::strong("Click"),
-            " again to stop."
-          ),
-          shiny::br(),
-          align = "center"
+          style = "text-align:left;"
         ),
         shiny::column(
-          8,
-          shiny::plotOutput(
-            outputId = "plotMeasure",
-            width = "auto",
-            click = "img_click",
-            hover = shiny::hoverOpts(
-              id = "hover",
-              delay = 100,
-              delayType = "throttle",
-              clip = TRUE,
-              nullOutside = TRUE
-            )
+          4,
+          tags$a(
+            id = "restart",
+            class = "btn btn-primary",
+            href = "javascript:history.go(0)",
+            shiny::HTML('<i class="fa fa-refresh fa-1x"></i>'),
+            title = "restart",
+            style = "color:white; border-color:white; border-radius:100%"
+          ),
+          style = "text-align:right;"
+        )
+      ),
+      windowTitle = "UsIA | Ultrasound Image Analysis"
+    ),
+    
+    shiny::HTML(
+      "<a href=\"https://doi.org/10.5281/zenodo.10439718\" style=\"vertical-align:middle;\"><img src=\"https://zenodo.org/badge/DOI/10.5281/zenodo.10439718.svg\" alt=\"DOI\"  style=\"vertical-align:top;\"></a>"
+    ),
+    shiny::br(),
+    shiny::br(),
+    
+    # change color of fileInput button
+    tags$head(tags$style(
+      shiny::HTML(".btn-file {background-color: #2C3E50;}")
+    )),
+    
+    # Main panel for displaying outputs ----
+    shiny::tabsetPanel(
+      id = "tabs",
+      type = "tabs",
+      shiny::tabPanel(
+        title = list(fontawesome::fa("right-to-bracket"), "Input"),
+        shiny::br(),
+        shiny::fileInput(
+          inputId = "InputFile",
+          label = NULL,
+          multiple = FALSE,
+          buttonLabel = list(fontawesome::fa("file-video"), "Upload"),
+          accept = c(".mp4"),
+          width = "100%",
+        ),
+        shiny::tabsetPanel(
+          id = "tabInput",
+          type = "tabs",
+          shiny::tabPanel(
+            title = list(fontawesome::fa("video"), "Video"),
+            shiny::br(),
+            shiny::uiOutput(outputId = "videoraw"),
+            align = "center"
+          ),
+          shiny::tabPanel(
+            title = list(fontawesome::fa("edit"), "Edit"),
+            shiny::br(),
+            shiny::sliderInput(
+              inputId = "framesEdit",
+              label = NULL,
+              min = 1,
+              max = 100,
+              value = c(1, 100),
+              step = 1,
+              ticks = FALSE,
+              animate = TRUE,
+              width = "100%"
+            ),
+            shiny::uiOutput(outputId = "videoedit"),
+            align = "center"
           ),
         ),
       ),
-    ),
-    shiny::tabPanel(
-      title = list(fontawesome::fa("arrow-trend-up"), "Track"),
-      shiny::br(),
-      shiny::tabsetPanel(
-        id = "tabTrack",
-        type = "tabs",
-        shiny::tabPanel(
-          title = list(fontawesome::fa("sliders"), "Setup"),
-          shiny::br(),
-          # split two columns
-          shiny::fluidRow(
-            shiny::column(
-              4,
-              shiny::sliderInput(
-                inputId = "KernelSizeTrack",
-                label = "Object (px)",
-                min = 1,
-                max = 201,
-                value = 50,
-                step = 2,
-                ticks = FALSE,
-                width = "100%",
-              ),
-              shiny::sliderInput(
-                inputId = "Overlap",
-                label = "ROI (%)",
-                min = 0,
-                max = 100,
-                value = 50,
-                step = 5,
-                ticks = FALSE,
-                width = "100%",
-              ),
-              shiny::radioButtons(
-                inputId = "FilterType",
-                label = "Filter",
-                choices = c("none", "mean", "median"),
-                selected = "none",
-                inline = TRUE,
-                width = "100%"
-              ),
-              shiny::sliderInput(
-                inputId = "FilterSize",
-                label = "Size (px)",
-                min = 1,
-                max = 11,
-                value = 1,
-                step = 2,
-                ticks = FALSE,
-                width = "100%",
-              ),
-              shiny::sliderInput(
-                inputId = "Jump",
-                label = "Jump (frames)",
-                min = 0,
-                max = 5,
-                value = 0,
-                ticks = FALSE,
-                width = "100%",
-              ),
-              shiny::br(),
-              shiny::actionButton(
-                inputId = "buttAnalyze",
-                label = "Analyze",
-                class = "btn-primary",
-                style = "width:100%; border-color:white; border-radius: 10px",
-                icon("play")
-              ),
-              shiny::br(),
-              align = "center"
+      shiny::tabPanel(
+        title = list(fontawesome::fa("ruler"), "Calibrate"),
+        # split two columns
+        shiny::br(),
+        shiny::fluidRow(
+          shiny::column(
+            4,
+            shiny::sliderInput(
+              inputId = "imgEdit",
+              label = "Frame",
+              min = 1,
+              max = 100,
+              value = 1,
+              step = 1,
+              ticks = FALSE,
+              animate = TRUE,
+              width = "100%"
             ),
-            shiny::column(
-              8,
-              shiny::tabPanel(
-                title = list(fontawesome::fa("crop"), "ROI"),
-                shiny::br(),
-                shiny::plotOutput(
-                  outputId = "plotROI",
-                  width = "auto",
-                  click = "roi_click"
+            # split two columns
+            shiny::fluidRow(
+              shiny::column(
+                6,
+                shiny::tags$h5(shiny::tags$strong("Scale (mm)")),
+                shiny::numericInput(
+                  inputId = "imgScale",
+                  label = NULL,
+                  value = 1,
+                  min = 0.1,
+                  max = 10,
+                  step = 0.1,
+                  width = "100%"
                 ),
-                align = "center"
               ),
+              shiny::column(
+                6,
+                shiny::tags$h5(shiny::tags$strong("Factor (mm/px)")),
+                shiny::verbatimTextOutput(
+                  outputId = "pixelsText",
+                  placeholder = TRUE
+                ),
+              ),
+            ),
+            shiny::br(),
+            shiny::actionButton(
+              inputId = "reset",
+              label = "Reset ROI",
+              width = "100%"
+            ),
+            shiny::br(),
+            htmltools::h5(
+              htmltools::strong("Click"),
+              " on plot to start. ",
+              htmltools::strong("Move"),
+              " the cursor to draw the ROI. ",
+              htmltools::strong("Click"),
+              " again to stop."
+            ),
+            shiny::br(),
+            align = "center"
+          ),
+          shiny::column(
+            8,
+            shiny::plotOutput(
+              outputId = "plotMeasure",
+              width = "auto",
+              click = "img_click",
+              hover = shiny::hoverOpts(
+                id = "hover",
+                delay = 100,
+                delayType = "throttle",
+                clip = TRUE,
+                nullOutside = TRUE
+              )
             ),
           ),
         ),
-        shiny::tabPanel(
-          value = "track",
-          title = list(fontawesome::fa("right-from-bracket"), "Output"),
-          shiny::br(),
-          shiny::downloadButton(
-            outputId = "downloadMP4",
-            label = "Video",
-            class = "btn-primary",
-            style = "width:100%; border-color:white; border-radius: 10px;",
-          ),
-          shiny::br(),
-          shiny::br(),
-          shiny::uiOutput(outputId = "videooutput"),
-          align = "center"
-        ),
-        shiny::tabPanel(
-          title = list(fontawesome::fa("chart-line"), "Plots"),
-          shiny::br(),
-          shiny::fluidPage(
+      ),
+      shiny::tabPanel(
+        title = list(fontawesome::fa("arrow-trend-up"), "Track"),
+        shiny::br(),
+        shiny::tabsetPanel(
+          id = "tabTrack",
+          type = "tabs",
+          shiny::tabPanel(
+            title = list(fontawesome::fa("sliders"), "Setup"),
+            shiny::br(),
+            # split two columns
             shiny::fluidRow(
               shiny::column(
                 4,
-                shiny::downloadButton(
-                  outputId = "downloadPATH",
-                  label = "Trajectory data",
-                  class = "btn-primary",
-                  style = "width:100%; border-color:white; border-radius: 10px;",
+                shiny::sliderInput(
+                  inputId = "KernelSizeTrack",
+                  label = "Object (px)",
+                  min = 1,
+                  max = 201,
+                  value = 50,
+                  step = 2,
+                  ticks = FALSE,
+                  width = "100%",
                 ),
-              ),
-              shiny::column(
-                4,
-                shiny::downloadButton(
-                  outputId = "downloadDISPL",
-                  label = "Displacement data",
-                  class = "btn-primary",
-                  style = "width:100%; border-color:white; border-radius: 10px;",
+                shiny::sliderInput(
+                  inputId = "Overlap",
+                  label = "ROI (%)",
+                  min = 0,
+                  max = 100,
+                  value = 50,
+                  step = 5,
+                  ticks = FALSE,
+                  width = "100%",
                 ),
-              ),
-              shiny::column(
-                4,
-                shiny::downloadButton(
-                  outputId = "downloadCC",
-                  label = "Cross-correlation data",
-                  class = "btn-primary",
-                  style = "width:100%; border-color:white; border-radius: 10px;",
+                shiny::radioButtons(
+                  inputId = "FilterType",
+                  label = "Filter",
+                  choices = c("none", "mean", "median"),
+                  selected = "none",
+                  inline = TRUE,
+                  width = "100%"
                 ),
+                shiny::sliderInput(
+                  inputId = "FilterSize",
+                  label = "Size (px)",
+                  min = 1,
+                  max = 11,
+                  value = 1,
+                  step = 2,
+                  ticks = FALSE,
+                  width = "100%",
+                ),
+                shiny::sliderInput(
+                  inputId = "Jump",
+                  label = "Jump (frames)",
+                  min = 0,
+                  max = 5,
+                  value = 0,
+                  ticks = FALSE,
+                  width = "100%",
+                ),
+                shiny::br(),
+                shiny::actionButton(
+                  inputId = "buttAnalyze",
+                  label = "Analyze",
+                  class = "btn-primary",
+                  style = "width:100%; border-color:white; border-radius: 10px",
+                  icon("play")
+                ),
+                shiny::br(),
                 align = "center"
+              ),
+              shiny::column(
+                8,
+                shiny::tabPanel(
+                  title = list(fontawesome::fa("crop"), "ROI"),
+                  shiny::br(),
+                  shiny::plotOutput(
+                    outputId = "plotROI",
+                    width = "auto",
+                    click = "roi_click"
+                  ),
+                  align = "center"
+                ),
               ),
             ),
           ),
-          shiny::br(),
-          shiny::br(),
-          shiny::plotOutput("plotTrack", width = "100%"),
-          align = "center"
-        ),
-        shiny::tabPanel(
-          title = list(fontawesome::fa("table"), "Tables"),
-          shiny::br(),
-          DT::dataTableOutput("tableTrack", width = "100%"),
-          align = "center"
+          shiny::tabPanel(
+            value = "track",
+            title = list(fontawesome::fa("right-from-bracket"), "Output"),
+            shiny::br(),
+            shiny::downloadButton(
+              outputId = "downloadMP4",
+              label = "Video",
+              class = "btn-primary",
+              style = "width:100%; border-color:white; border-radius: 10px;",
+            ),
+            shiny::br(),
+            shiny::br(),
+            shiny::uiOutput(outputId = "videooutput"),
+            align = "center"
+          ),
+          shiny::tabPanel(
+            title = list(fontawesome::fa("chart-line"), "Plots"),
+            shiny::br(),
+            shiny::fluidPage(
+              shiny::fluidRow(
+                shiny::column(
+                  4,
+                  shiny::downloadButton(
+                    outputId = "downloadPATH",
+                    label = "Trajectory data",
+                    class = "btn-primary",
+                    style = "width:100%; border-color:white; border-radius: 10px;",
+                  ),
+                ),
+                shiny::column(
+                  4,
+                  shiny::downloadButton(
+                    outputId = "downloadDISPL",
+                    label = "Displacement data",
+                    class = "btn-primary",
+                    style = "width:100%; border-color:white; border-radius: 10px;",
+                  ),
+                ),
+                shiny::column(
+                  4,
+                  shiny::downloadButton(
+                    outputId = "downloadCC",
+                    label = "Cross-correlation data",
+                    class = "btn-primary",
+                    style = "width:100%; border-color:white; border-radius: 10px;",
+                  ),
+                  align = "center"
+                ),
+              ),
+            ),
+            shiny::br(),
+            shiny::br(),
+            shiny::plotOutput("plotTrack", width = "100%"),
+            align = "center"
+          ),
+          shiny::tabPanel(
+            title = list(fontawesome::fa("table"), "Tables"),
+            shiny::br(),
+            DT::dataTableOutput("tableTrack", width = "100%"),
+            align = "center"
+          ),
         ),
       ),
-    ),
-    shiny::tabPanel(
-      title = list(fontawesome::fa("circle-info")),
-      shiny::br(),
-      shiny::HTML(
-        "<p>1. Upload a video file (.mp4) with the <b>Upload video</b>.</p>
+      shiny::tabPanel(
+        title = list(fontawesome::fa("circle-info")),
+        shiny::br(),
+        shiny::HTML(
+          "<p>1. Upload a video file (.mp4) with the <b>Upload video</b>.</p>
             <p>2. If necessary, edit the video by subsetting the uploaded video using <b>Edit</b>.</p>
             <p>3. Click <b>Track</b> to configure the analysis.</p>
             <p>4. Set up the parameters for analysis:</p>
@@ -394,41 +395,42 @@ ui <- shiny::fluidPage(
             <p>7. Check <b>Output</b> tab to visualize the processed video.</p>
             <p>8. Check <b>Plots</b> and <b>Table</b> tabs for the results.</p>
             <p>9. Click <b>restart</b> icon before running new analisys.",
+        ),
+      ),
+      shiny::tabPanel(
+        title = list(fontawesome::fa("people-group")),
+        shiny::br(),
+        shiny::HTML(
+          "<a href=\"mailto:arthurde@souunisuam.com.br\">Arthur Ferreira, DSc</a>"
+        ),
+        shiny::HTML("<b> (Developer)</b>"),
+        shiny::br(),
+        shiny::br(),
+        shiny::HTML(
+          "<a href=\"mailto:gustavo.telles@souunisuam.com.br\">Gustavo Telles, MSc</a>; <a href=\"mailto:jessica.rio@souunisuam.com.br\">Jessica Rio, MSc</a>; <a href=\"mailto:alicepagnez@souunisuam.com.br\"> Maria Alice Pagnez, DSc</a>; <a href=\"mailto:leandronogueira@souunisuam.com.br\">Leandro Nogueira, DSc</a>"
+        ),
+        shiny::HTML("<b> (Contributors)</b>"),
+        shiny::br(),
+        shiny::br(),
+        shiny::HTML(
+          "<a href=\"https://www.unisuam.edu.br/programa-pos-graduacao-ciencias-da-reabilitacao\">PPGCR</a> | Programa de Pós-graduação em Ciências da Reabilitação, Centro Universitário Augusto Motta, Rio de Janeiro, RJ, Brazil"
+        ),
+        shiny::HTML("<b> (Affiliation)</b>"),
+        shiny::br(),
+        shiny::br(),
+        shiny::HTML("<b>License</b>"),
+        shiny::HTML(
+          "This work is licensed under an <a rel=\"license\" data-spdx=\"Apache-2.0\" href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache License 2.0</a>."
+        ),
+        shiny::br(),
+        shiny::HTML("<b>Cite as</b>"),
+        shiny::HTML(
+          "Ferreira, A.S. (2023). UsIA | Ultrasound Image Analysis (1.0.0). Zenodo. https://doi.org/10.5281/zenodo.10439718"
+        ),
       ),
     ),
-    shiny::tabPanel(
-      title = list(fontawesome::fa("people-group")),
-      shiny::br(),
-      shiny::HTML(
-        "<a href=\"mailto:arthurde@souunisuam.com.br\">Arthur Ferreira, DSc</a>"
-      ),
-      shiny::HTML("<b> (Developer)</b>"),
-      shiny::br(),
-      shiny::br(),
-      shiny::HTML(
-        "<a href=\"mailto:gustavo.telles@souunisuam.com.br\">Gustavo Telles, MSc</a>; <a href=\"mailto:jessica.rio@souunisuam.com.br\">Jessica Rio, MSc</a>; <a href=\"mailto:alicepagnez@souunisuam.com.br\"> Maria Alice Pagnez, DSc</a>; <a href=\"mailto:leandronogueira@souunisuam.com.br\">Leandro Nogueira, DSc</a>"
-      ),
-      shiny::HTML("<b> (Contributors)</b>"),
-      shiny::br(),
-      shiny::br(),
-      shiny::HTML(
-        "<a href=\"https://www.unisuam.edu.br/programa-pos-graduacao-ciencias-da-reabilitacao\">PPGCR</a> | Programa de Pós-graduação em Ciências da Reabilitação, Centro Universitário Augusto Motta, Rio de Janeiro, RJ, Brazil"
-      ),
-      shiny::HTML("<b> (Affiliation)</b>"),
-      shiny::br(),
-      shiny::br(),
-      shiny::HTML("<b>License</b>"),
-      shiny::HTML(
-        "This work is licensed under an <a rel=\"license\" data-spdx=\"Apache-2.0\" href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache License 2.0</a>."
-      ),
-      shiny::br(),
-      shiny::HTML("<b>Cite as</b>"),
-      shiny::HTML(
-        "Ferreira, A.S. (2023). UsIA | Ultrasound Image Analysis (1.0.0). Zenodo. https://doi.org/10.5281/zenodo.10439718"
-      ),
-    ),
-  ),
-)
+  )
+}
 
 # Define server script
 server <- function(input, output, session) {
@@ -1083,38 +1085,19 @@ server <- function(input, output, session) {
   
   # restart button ---------------------------------------------------------
   shinyjs::onclick("restart", {
-    # clean InputFile
     shinyjs::reset("InputFile")
     
-    # delete files
-    unlink(
-      list.files(
-        path = dir.name,
-        recursive = TRUE,
-        include.dirs = TRUE,
-        full.names = TRUE,
-        pattern = "mp4"
-      )
-    )
-    unlink(
-      list.files(
-        path = dir.name,
-        recursive = TRUE,
-        include.dirs = TRUE,
-        full.names = TRUE,
-        pattern = "png"
-      )
-    )
-    unlink(
-      list.files(
-        path = dir.name,
-        recursive = TRUE,
-        include.dirs = TRUE,
-        full.names = TRUE,
-        pattern = "csv"
-      )
-    )
+    # Listar tudo dentro de www/
+    itens <- list.files("www", full.names = TRUE)
+    
+    # Manter apenas a pasta de favicons
+    itens_para_apagar <- itens[basename(itens) != "favicon_io"]
+    
+    # Deletar tudo, exceto a pasta favicon_io
+    unlink(itens_para_apagar, recursive = TRUE, force = TRUE)
   })
+  
+  # prevent downloadHandler from suspending when hidden
   lapply(
     c("downloadMP4", "downloadPATH", "downloadDISPL", "downloadCC"),
     function(id) outputOptions(output, id, suspendWhenHidden = FALSE)
