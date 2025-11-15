@@ -59,6 +59,15 @@ ui <- function(req) {
       tags$link(rel = "stylesheet", href = "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css")
     ),
     
+    tags$script(HTML("
+      Shiny.addCustomMessageHandler('resetFileInput', function(id) {
+      var el = $('#' + id + '_progress');
+      el.html('');                      // limpa barra de progresso
+      $('#' + id).val('');              // limpa input real
+      $('#' + id + ' .file-input-name').text('');  // limpa nome exibido
+      });
+    ")),
+    
     # use shinythemes
     theme = shinythemes::shinytheme("flatly"),
     
@@ -493,18 +502,14 @@ server <- function(input, output, session) {
   # When a new video is uploaded
   shiny::observeEvent(input$InputFile, {
     shiny::req(input$InputFile)
-    Video(input$InputFile$datapath)   # ✅ overwrite old video
+    Video(input$InputFile$datapath)
   })
   
   # When restart is clicked
   shiny::observeEvent(input$restart, {
-    Video(NULL)                       # ✅ clear memory
-    shinyjs::reset("InputFile")       # ✅ clear UI file input
-  })
-  
-  # For debugging – shows current video path
-  output$path <- shiny::renderPrint({
-    Video()
+    Video(NULL)
+    shinyjs::reset("InputFile")
+    session$sendCustomMessage("resetFileInput", "InputFile")
   })
   
   # play uploaded video ---------------------------------------------------------
