@@ -10,6 +10,9 @@ if (dir.exists("favicon_io")) {
   R.utils::copyDirectory("favicon_io", file.path(dir.name, "favicon_io"))
 }
 
+# use this code to debug
+# rsconnect::showLogs()
+
 # if (!require("BiocManager", quietly = TRUE)){
 #   install.packages("BiocManager", force = TRUE)
 #   BiocManager::install("EBImage", force = TRUE)
@@ -38,11 +41,10 @@ source("f_track_all.R")
 source("f_track_first.R")
 source("us_track.R")
 
-# use this code to debug
-# rsconnect::showLogs()
-
 ui <- function(req) {
+  
   shiny::fluidPage(
+    
     # add favicon
     shiny::tags$head(
       shiny::tags$link(rel = "shortcut icon", href = "www/favicon_io/favicon.ico"),
@@ -503,13 +505,6 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$InputFile, {
     shiny::req(input$InputFile)
     Video(input$InputFile$datapath)
-  })
-  
-  # When restart is clicked
-  shiny::observeEvent(input$restart, {
-    Video(NULL)
-    shinyjs::reset("InputFile")
-    session$sendCustomMessage("resetFileInput", "InputFile")
   })
   
   # play uploaded video ---------------------------------------------------------
@@ -1088,9 +1083,29 @@ server <- function(input, output, session) {
       }
     )
   
-  # restart button ---------------------------------------------------------
+  # reset InputFile ---------------------------------------------------------
+  shinyjs::onclick("InputFile", {
+    Video(NULL)
+    shinyjs::reset("InputFile")
+    session$sendCustomMessage("resetFileInput", "InputFile")
+    
+    # Listar tudo dentro de www/
+    itens <- list.files("www", full.names = TRUE)
+    
+    # Manter apenas a pasta de favicons
+    itens_para_apagar <- itens[basename(itens) != "favicon_io"]
+    
+    # Deletar tudo, exceto a pasta favicon_io
+    unlink(itens_para_apagar, recursive = TRUE, force = TRUE)
+  })
+  
+  # restart restart ---------------------------------------------------------
   shinyjs::onclick("restart", {
     shinyjs::reset("InputFile")
+    
+    Video(NULL)
+    shinyjs::reset("InputFile")
+    session$sendCustomMessage("resetFileInput", "InputFile")
     
     # Listar tudo dentro de www/
     itens <- list.files("www", full.names = TRUE)
