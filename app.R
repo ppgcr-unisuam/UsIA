@@ -409,24 +409,86 @@ ui <- function(req) {
         ),
       ),
       shiny::tabPanel(
-        title = list(fontawesome::fa("people-group")),
+        title = list(fontawesome::fa("people-group"), "Credits"),
         shiny::br(),
         shiny::HTML(
-          "<a href=\"mailto:arthurde@souunisuam.com.br\">Arthur Ferreira, DSc</a>"
+          "<b>Arthur de Sá Ferreira, DSc</b> (Developer)"),
+        shiny::br(),
+        shiny::HTML(
+          '<a id="cy-effective-orcid-url" class="underline" 
+         href="https://orcid.org/0000-0001-7014-2002"
+         target="orcid.widget" rel="me noopener noreferrer" style="vertical-align: top">
+         <img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width: 1em; margin-inline-start: 0.5em" alt="ORCID iD icon"/>
+         https://orcid.org/0000-0001-7014-2002
+         </a>'
         ),
-        shiny::HTML("<b> (Developer)</b>"),
         shiny::br(),
         shiny::br(),
         shiny::HTML(
-          "<a href=\"mailto:gustavo.telles@souunisuam.com.br\">Gustavo Telles, MSc</a>; <a href=\"mailto:jessica.rio@souunisuam.com.br\">Jessica Rio, MSc</a>; <a href=\"mailto:alicepagnez@souunisuam.com.br\"> Maria Alice Pagnez, DSc</a>; <a href=\"mailto:leandronogueira@souunisuam.com.br\">Leandro Nogueira, DSc</a>"
+          "<b>Gustavo Telles, DSc</b> (Contributor)"),
+        shiny::br(),
+        shiny::HTML(
+          '<a id="cy-effective-orcid-url" class="underline" 
+         href="https://orcid.org/0009-0004-4179-3489"
+         target="orcid.widget" rel="me noopener noreferrer" style="vertical-align: top">
+         <img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width: 1em; margin-inline-start: 0.5em" alt="ORCID iD icon"/>
+         https://orcid.org/0009-0004-4179-3489
+         </a>'
         ),
-        shiny::HTML("<b> (Contributors)</b>"),
         shiny::br(),
         shiny::br(),
         shiny::HTML(
-          "<a href=\"https://www.unisuam.edu.br/programa-pos-graduacao-ciencias-da-reabilitacao\">PPGCR</a> | Programa de Pós-graduação em Ciências da Reabilitação, Centro Universitário Augusto Motta, Rio de Janeiro, RJ, Brazil"
+          "<b>Jessica Pinto Martins do Rio, MSc</b> (Contributor)"),
+        shiny::br(),
+        shiny::HTML(
+          '<a id="cy-effective-orcid-url" class="underline" 
+         href="https://orcid.org/0000-0003-1608-3325"
+         target="orcid.widget" rel="me noopener noreferrer" style="vertical-align: top">
+         <img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width: 1em; margin-inline-start: 0.5em" alt="ORCID iD icon"/>
+         https://orcid.org/0000-0003-1608-3325
+         </a>'
         ),
-        shiny::HTML("<b> (Affiliation)</b>"),
+        shiny::br(),
+        shiny::br(),
+        shiny::HTML(
+          "<b>Maria Alice Mainenti Pagnez, DSc</b> (Contributor)"),
+        shiny::br(),
+        shiny::HTML(
+          '<a id="cy-effective-orcid-url" class="underline" 
+         href="https://orcid.org/0000-0001-7100-9430"
+         target="orcid.widget" rel="me noopener noreferrer" style="vertical-align: top">
+         <img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width: 1em; margin-inline-start: 0.5em" alt="ORCID iD icon"/>
+         https://orcid.org/0000-0001-7100-9430
+         </a>'
+        ),
+        shiny::br(),
+        shiny::br(),
+        shiny::HTML(
+          "<b>Leandro Alberto Calazans Nogueira, DSc</b> (Contributor)"),
+        shiny::br(),
+        shiny::HTML(
+          '<a id="cy-effective-orcid-url" class="underline" 
+         href="https://orcid.org/0000-0002-0177-9816"
+         target="orcid.widget" rel="me noopener noreferrer" style="vertical-align: top">
+         <img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width: 1em; margin-inline-start: 0.5em" alt="ORCID iD icon"/>
+         https://orcid.org/0000-0002-0177-9816
+         </a>'
+        ),
+        shiny::br(),
+        shiny::br(),
+        shiny::HTML(
+          "<b>Centro Universitário Augusto Motta</b> (Affiliation) <br>
+        Programa de Pós-graduação em Ciências da Reabilitação <br>
+        Rio de Janeiro, RJ, Brazil"),
+        shiny::br(),
+        shiny::HTML(
+          '<a
+         href="https://ror.org/02ab1bc46"
+         style="vertical-align: top">
+         <img src="https://ror.org/assets/ror-logo-small-671ea83ad5060ad5c0c938809aab4731.png" style="width: 1em; margin-inline-start: 0.5em"/>
+         https://ror.org/02ab1bc46
+         </a>'
+        ),
         shiny::br(),
         shiny::br(),
         shiny::HTML("<b>License</b>"),
@@ -434,10 +496,13 @@ ui <- function(req) {
           "This work is licensed under an <a rel=\"license\" data-spdx=\"Apache-2.0\" href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache License 2.0</a>."
         ),
         shiny::br(),
-        shiny::HTML("<b>Cite as</b>"),
+        shiny::br(),
+        shiny::HTML("<b>Citation</b>"),
         shiny::HTML(
           "Ferreira, A.S. (2023). UsIA | Ultrasound Image Analysis (1.0.0). Zenodo. https://doi.org/10.5281/zenodo.10439718"
         ),
+        shiny::br(),
+        shiny::br(),
       ),
     ),
   )
