@@ -190,7 +190,7 @@ ui <- function(req) {
                   label = NULL,
                   value = 1,
                   min = 0.1,
-                  max = 10,
+                  max = 200,
                   step = 0.1,
                   width = "100%"
                 ),
@@ -552,11 +552,6 @@ server <- function(input, output, session) {
   # global storage
   calib_factor <- shiny::reactiveValues(mm_per_pixel = 1)
   
-  # change to tab under event ---------------------------------------------------------
-  shiny::observeEvent(input[["buttAnalyze"]], {
-    shiny::updateTabsetPanel(inputId = "tabTrack", selected = "track")
-  })
-  
   # enable/disable filter
   shiny::observeEvent(input$FilterType, {
     shinyjs::toggleState(id = "FilterSize", condition = input$FilterType != "none")
@@ -860,9 +855,15 @@ server <- function(input, output, session) {
   
   # process, play and export video ---------------------------------------------------------
   shiny::observeEvent(input[["buttAnalyze"]], {
+    shiny::updateTabsetPanel(inputId = "tabTrack", selected = "track")
+    
     shiny::req(Video())
     # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
+    
+    # limpar frames antigos antes de rodar nova análise
+    unlink(file.path(dir.name, "8 output"), recursive = TRUE, force = TRUE)
+    dir.create(file.path(dir.name, "8 output"), showWarnings = FALSE)
     
     # Capture the result of us_track function call
     us_track(
@@ -944,6 +945,8 @@ server <- function(input, output, session) {
   # show MP4 video of output file
   output[["videooutput"]] <- shiny::renderUI({
     shiny::req(Video())
+    input$buttAnalyze
+    
     # show output video
     tags$video(
       width = "90%",
@@ -1029,6 +1032,8 @@ server <- function(input, output, session) {
   # plot results of th CSV files ---------------------------------------------------------
   output[["plotTrack"]] <- shiny::renderImage({
     shiny::req(Video())
+    input$buttAnalyze
+    
     # Get video info such as width, height, format, duration and framerate
     info <-
       av::av_media_info(file.path(dir.name, "outputvideo.mp4"))
@@ -1049,6 +1054,7 @@ server <- function(input, output, session) {
   # show datatable of results ---------------------------------------------------------
   output[["tableTrack"]] <- DT::renderDataTable({
     shiny::req(Video())
+    input$buttAnalyze
     shiny::req(df())
     df <- t(df())
     labels <-
