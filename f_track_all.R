@@ -86,8 +86,7 @@ f_all_frames <- function(inputfile,
       width = width,
       height = height,
       units = "px",
-      res = 1,
-      type = "cairo"
+      res = 1
     )
   }
   

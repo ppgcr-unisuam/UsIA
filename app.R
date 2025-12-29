@@ -925,7 +925,6 @@ server <- function(input, output, session) {
         height = info$video$height,
         units = "px",
         dpi = 1,
-        type = "cairo",
         limitsize = FALSE
       )
     }
