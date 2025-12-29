@@ -41,12 +41,12 @@ f_first_frame <- function(info,
   
   # Pipeline unificado de pré-processamento
   preprocess <- function(f) {
-    if ("gray"       %in% dsp) f <- f_color_conversion(f, pal, gray.dir, FALSE, FALSE, info)
-    if ("detrend"    %in% dsp) f <- f_spatial_detrend(f, pal, detrend.dir, FALSE, FALSE, info)
-    if ("equalize"   %in% dsp) f <- f_equalize(f, pal, hist.dir, FALSE, FALSE, info)
-    if ("filter"     %in% dsp) f <- f_spatial_filter(f, param, pal, filter.dir, FALSE, FALSE, info)
-    if ("threshold"  %in% dsp) f <- f_threshold(f, pal, bin.dir, FALSE, FALSE, info)
-    if ("morphologic"%in% dsp) f <- f_morphologic(f, pal, morph.dir, FALSE, FALSE, info)
+    if ("gray"       %in% dsp) f <- f_color_conversion(f, pal, gray.dir, show.plot, save.plot, info)
+    if ("detrend"    %in% dsp) f <- f_spatial_detrend(f, pal, detrend.dir, show.plot, save.plot, info)
+    if ("equalize"   %in% dsp) f <- f_equalize(f, pal, hist.dir, show.plot, save.plot, info)
+    if ("filter"     %in% dsp) f <- f_spatial_filter(f, param, pal, filter.dir, show.plot, save.plot, info)
+    if ("threshold"  %in% dsp) f <- f_threshold(f, pal, bin.dir, show.plot, save.plot, info)
+    if ("morphologic"%in% dsp) f <- f_morphologic(f, pal, morph.dir, show.plot, save.plot, info)
     f
   }
   

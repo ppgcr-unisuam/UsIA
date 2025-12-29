@@ -302,7 +302,7 @@ ui <- function(req) {
                 shiny::br(),
                 shiny::actionButton(
                   inputId = "buttAnalyze",
-                  label = "Analyze",
+                  label = "Track",
                   class = "btn-primary",
                   style = "width:100%; border-color:white; border-radius: 10px",
                   icon("play")
@@ -863,6 +863,7 @@ server <- function(input, output, session) {
     
     # limpar frames antigos antes de rodar nova análise
     unlink(file.path(dir.name, "8 output"), recursive = TRUE, force = TRUE)
+    # create output folder
     dir.create(file.path(dir.name, "8 output"), showWarnings = FALSE)
     
     # Capture the result of us_track function call

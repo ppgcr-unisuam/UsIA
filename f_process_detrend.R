@@ -27,6 +27,7 @@ f_spatial_detrend <- function(
     dir.create(detrend.dir, recursive = TRUE)
   
   # ---- Rotation helper ----
+  # orientation fix for image(), not altering numerical content
   rotate90 <- function(x) t(apply(x, 2, rev))
   
   # ---- Summary stats ----

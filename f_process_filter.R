@@ -85,5 +85,12 @@ f_spatial_filter <- function(
     dev.off()
   }
   
+  # ---- Convert to integer ----
+  frame.filter <- matrix(
+    as.integer(round(frame.filter)),
+    nrow = nrow(frame.filter),
+    ncol = ncol(frame.filter)
+  )
+  
   return(frame.filter)
 }

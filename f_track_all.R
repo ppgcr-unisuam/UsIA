@@ -45,22 +45,22 @@ f_all_frames <- function(inputfile,
   apply_preprocessing <- function(frame) {
     f <- frame
     if ("gray" %in% dsp) {
-      f <- f_color_conversion(f, pal, gray.dir, show.plot = FALSE, save.plot = FALSE, info)
+      f <- f_color_conversion(f, pal, gray.dir, show.plot = show.plot, save.plot = save.plot, info)
     }
     if ("detrend" %in% dsp) {
-      f <- f_spatial_detrend(f, pal, detrend.dir, show.plot = FALSE, save.plot = FALSE, info)
+      f <- f_spatial_detrend(f, pal, detrend.dir, show.plot = show.plot, save.plot = save.plot, info)
     }
     if ("equalize" %in% dsp) {
-      f <- f_equalize(f, pal, hist.dir, show.plot = FALSE, save.plot = FALSE, info)
+      f <- f_equalize(f, pal, hist.dir, show.plot = show.plot, save.plot = save.plot, info)
     }
     if ("filter" %in% dsp) {
-      f <- f_spatial_filter(f, param, pal, filter.dir, show.plot = FALSE, save.plot = FALSE, info)
+      f <- f_spatial_filter(f, param, pal, filter.dir, show.plot = show.plot, save.plot = save.plot, info)
     }
     if ("threshold" %in% dsp) {
-      f <- f_threshold(f, pal, bin.dir, show.plot = FALSE, save.plot = FALSE, info)
+      f <- f_threshold(f, pal, bin.dir, show.plot = show.plot, save.plot = save.plot, info)
     }
     if ("morphologic" %in% dsp) {
-      f <- f_morphologic(f, pal, morph.dir, show.plot = FALSE, save.plot = FALSE, info)
+      f <- f_morphologic(f, pal, morph.dir, show.plot = show.plot, save.plot = save.plot, info)
     }
     return(f)
   }
@@ -69,7 +69,7 @@ f_all_frames <- function(inputfile,
   # Helper 3: Extract ROI around a center
   # ---------------------------------------------------------------
   extract_ROI <- function(frame, center, size) {
-    half <- floor(size / 2)
+    half <- floor (size / 2)
     y1 <- info$video$height - (center$y + half)
     y2 <- info$video$height - (center$y - half)
     x1 <- center$x - half
@@ -182,7 +182,7 @@ f_all_frames <- function(inputfile,
                 prev_center$y - roi/2 <= 0,
                 prev_center$x + roi/2 >= info$video$width,
                 prev_center$y + roi/2 >= info$video$height))) {
-        stop("ROI is touching borders.")
+        message("ROI is touching borders.")
       }
       
       # -----------------------------------------------------------

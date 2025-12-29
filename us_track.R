@@ -12,7 +12,7 @@ us_track <- function(center.ini = NULL,
   
   rm(list = ls(all.names = TRUE, envir = .GlobalEnv))
   options(warn = -1)
-
+  
   # Helper: round number to next odd
   round_2_odd <- function(x) 2 * floor(x / 2) + 1
   
@@ -26,15 +26,15 @@ us_track <- function(center.ini = NULL,
   # 2) DIRECTORY SETUP
   # ============================================================
   
-  raw.dir    <- "www/0 raw"
-  gray.dir   <- "www/2 gray"
+  raw.dir     <- "www/0 raw"
+  gray.dir    <- "www/2 gray"
   detrend.dir <- "www/3 detrend"
-  hist.dir   <- "www/4 equaliz"
-  filter.dir <- "www/5 filter"
-  bin.dir    <- "www/6 bin"
-  morph.dir  <- "www/7 morph"
-  out.dir    <- "www/8 output"
-  res.dir    <- "www/CSV"
+  hist.dir    <- "www/4 equaliz"
+  filter.dir  <- "www/5 filter"
+  bin.dir     <- "www/6 bin"
+  morph.dir   <- "www/7 morph"
+  out.dir     <- "www/8 output"
+  res.dir     <- "www/CSV"
   
   lapply(c(raw.dir, gray.dir, detrend.dir, hist.dir,
            filter.dir, bin.dir, morph.dir,
@@ -93,9 +93,9 @@ us_track <- function(center.ini = NULL,
     roi = roi,
     center.ini = center.ini,
     plot.border = FALSE,
-    dsp = c("gray", "equalize", "mean", "threshold", "morphologic"),
+    dsp = c("gray", "equalize", "filter", "threshold", "morphologic"), # detrend is not working properly
     show.plot = FALSE,
-    save.plot = TRUE,
+    save.plot = FALSE,
     info = info
   )
   
