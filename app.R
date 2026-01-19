@@ -572,6 +572,7 @@ server <- function(input, output, session) {
     shiny::req(Video())
     # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
+    fps <- info$video$framerate
     
     # center ROI for the first time
     roi_coords$xy[2, ] <- c(info$video$width / 2, info$video$height / 2)
@@ -636,6 +637,7 @@ server <- function(input, output, session) {
     shiny::req(input$framesEdit)
     # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
+    fps <- info$video$framerate
     
     # generate mp4 video using the sliderEdit input
     av::av_encode_video(
@@ -697,6 +699,7 @@ server <- function(input, output, session) {
     shiny::req(input$imgEdit)
     # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
+    fps <- info$video$framerate
     
     # show 1st frame
     img <-
@@ -778,6 +781,7 @@ server <- function(input, output, session) {
     
     # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
+    fps <- info$video$framerate
     
     # show 1st frame
     img <-
@@ -860,6 +864,7 @@ server <- function(input, output, session) {
     shiny::req(Video())
     # Get video info such as width, height, format, duration and framerate
     info <- av::av_media_info(Video())
+    fps <- info$video$framerate
     
     # limpar frames antigos antes de rodar nova análise
     unlink(file.path(dir.name, "8 output"), recursive = TRUE, force = TRUE)
@@ -966,12 +971,20 @@ server <- function(input, output, session) {
     )) &
     file.exists(file.path(dir.name, "CSV", "displacement.csv"))) {
       info <- av::av_media_info(Video())
+      # frame rate
+      fps <- info$video$framerate
+      if (is.character(fps)) {
+        fps <- eval(parse(text = fps))
+      }
       
       # calibrate files
       calib_displacement <-
         read.csv(file.path(dir.name, "CSV", "displacement.csv")) * calib_factor$mm_per_pixel
       calib_trajectory <-
         read.csv(file.path(dir.name, "CSV", "trajectory_measured.csv")) * calib_factor$mm_per_pixel
+      
+      step_mm <- (diff(calib_trajectory[[1]])^2 +
+                    diff(calib_trajectory[[2]])^2)^0.5
       
       data.frame(
         "File name" = input$InputFile[1],
@@ -988,12 +1001,8 @@ server <- function(input, output, session) {
         "Jump (frames)" = input$Jump,
         "Displacement, total (px)" = round(sum(calib_displacement[[1]], na.rm = TRUE), 3),
         "Displacement, mean (mm)" = round(mean(calib_displacement[[1]], na.rm = TRUE), 3),
-        "Speed, mean (mm/frame)" = round(mean(
-          (diff(calib_trajectory[[1]], differences = 1)^2 + diff(calib_trajectory[[2]], differences = 1)^2)^0.5,
-          na.rm = TRUE), 3),
-        "Speed, max (mm/frame)" = round(max(
-          (diff(calib_trajectory[[1]], differences = 1)^2 + diff(calib_trajectory[[2]], differences = 1)^2)^0.5,
-          na.rm = TRUE), 3),
+        "Speed, mean (mm/s)" = round(mean(step_mm, na.rm = TRUE) * fps, 3),
+        "Speed, max (mm/s)"  = round(max(step_mm,  na.rm = TRUE) * fps, 3),
         "Cross-correlation, max" = round(max(read.csv(
           file.path(dir.name, "CSV", "max_cross_correlation.csv")
         )[[1]], na.rm = TRUE), 3),
@@ -1006,6 +1015,8 @@ server <- function(input, output, session) {
       )
     } else {
       info <- av::av_media_info(Video())
+      fps <- info$video$framerate
+      
       data.frame(
         "File name" = input$InputFile[1],
         "Frames (n)" = info$video$frames,
@@ -1021,8 +1032,8 @@ server <- function(input, output, session) {
         "Jump (frames)" = input$Jump,
         "Displacement, total (mm)" = NA,
         "Displacement, mean (mm)" = NA,
-        "Speed, mean (mm/frame)" = NA,
-        "Speed, max (mm/frame)" = NA,
+        "Speed, mean (mm/s)" = NA,
+        "Speed, max (mm/s)" = NA,
         "Cross-correlation, max" = NA,
         "Cross-correlation, mean" = NA,
         "Cross-correlation, min" = NA
@@ -1073,8 +1084,8 @@ server <- function(input, output, session) {
         "Jump (frames)",
         "Displacement, total (mm)",
         "Displacement, mean (mm)",
-        "Speed, mean (mm/frame)",
-        "Speed, max (mm/frame)",
+        "Speed, mean (mm/s)",
+        "Speed, max (mm/s)",
         "Cross-correlation, max",
         "Cross-correlation, mean",
         "Cross-correlation, min"
