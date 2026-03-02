@@ -22,6 +22,10 @@ if (dir.exists("favicon_io")) {
 #   remotes::install_github("r-spatial/sf", force = TRUE)
 # }
 
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#   install.packages("BiocManager")
+# renv::install("BiocGenerics@0.54.1")
+
 options(repos = BiocManager::repositories())
 # load libraries
 library(dplyr)

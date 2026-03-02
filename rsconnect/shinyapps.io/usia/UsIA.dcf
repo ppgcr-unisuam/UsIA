@@ -5,7 +5,7 @@ account: usia
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 16455469
-bundleId: 11464339
+bundleId: 11652122
 url: https://usia.shinyapps.io/UsIA/
 version: 1
 asMultiple: FALSE
