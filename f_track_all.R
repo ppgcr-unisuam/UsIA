@@ -158,10 +158,13 @@ f_all_frames <- function(inputfile,
       
       # Set basic plot
       par(mar = rep(0,4), oma = rep(0,4), omi = rep(0,4), mai = rep(0,4))
-      plot(NULL, xlim = c(0, info$video$width), ylim = c(0, info$video$height),
-           asp = 1, col = pal)
-      par(new = TRUE)
-      plot(cur.frame.raw, asp = 1, col = pal)
+      plot(
+        cur.frame.raw,
+        asp = 1,
+        col = pal,
+        xlim = c(0, info$video$width),
+        ylim = c(0, info$video$height)
+      )
       
       # -----------------------------------------------------------
       # Update ROI from previous center

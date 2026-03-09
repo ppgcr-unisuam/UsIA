@@ -79,16 +79,12 @@ f_first_frame <- function(info,
   )
   
   par(mar = rep(0,4), oma = rep(0,4), omi = rep(0,4), mai = rep(0,4))
-  plot(NULL,
+  plot(cur.frame.raw,
        xlim = c(0, info$video$width),
        ylim = c(0, info$video$height),
        asp = 1,
        col = pal)
-  par(new = TRUE)
-  plot(cur.frame.raw, asp = 1, col = pal)
-  
-  dev.off()
-  
+
   # ===============================================================
   # Determinação do centro (manual ou simulado)
   # ===============================================================
