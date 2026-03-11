@@ -30,7 +30,6 @@ f_threshold <- function(
   # ---- Rotation helper ----
   rotate90 <- function(x) t(apply(x, 2, rev))
   
-  
   # ---- Compute threshold (Otsu) ----
   threshold <- autothresholdr::auto_thresh(
     frame.filter,

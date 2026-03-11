@@ -64,12 +64,6 @@ f_first_frame <- function(info,
   # Setup do plot
   # ===============================================================
   
-  # par(mar = rep(0, 4), oma = rep(0, 4), omi = rep(0, 4), mai = rep(0, 4))
-  # plot(NULL, xlim = c(0, info$video$width), ylim = c(0, info$video$height),
-  #      asp = 1, col = pal)
-  # par(new = TRUE)
-  # plot(cur.frame.raw, asp = 1, col = pal)
-  
   png(
     filename = file.path(out.dir, sprintf("image_%06d.png", j)),
     width = info$video$width,
@@ -78,7 +72,6 @@ f_first_frame <- function(info,
     res = 1
   )
   
-  par(mar = rep(0,4), oma = rep(0,4), omi = rep(0,4), mai = rep(0,4))
   plot(cur.frame.raw,
        xlim = c(0, info$video$width),
        ylim = c(0, info$video$height),

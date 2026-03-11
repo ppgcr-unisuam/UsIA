@@ -157,7 +157,6 @@ f_all_frames <- function(inputfile,
       cur.frame.raw <- load_frame(i)
       
       # Set basic plot
-      par(mar = rep(0,4), oma = rep(0,4), omi = rep(0,4), mai = rep(0,4))
       plot(
         cur.frame.raw,
         asp = 1,
